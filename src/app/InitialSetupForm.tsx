@@ -3,11 +3,7 @@
  * 入力値の更新や送信処理は外部から受け取り、表示に専念する。
  */
 
-import {
-  LUNCH_TIME_OPTIONS,
-  PREFECTURES,
-  WEEKDAYS,
-} from "@/constants/initialSetup";
+import { PREFECTURES, WEEKDAYS } from "@/constants/initialSetup";
 import type { InitialSetupFormController } from "@/hooks/useInitialSetup";
 
 /**
@@ -137,22 +133,30 @@ export function InitialSetupForm({
                 <span className="grid size-6 place-items-center rounded-full bg-brand text-xs text-surface">2</span>
                 昼休みの時間
               </legend>
-              <p className="mt-1 text-xs text-ink-muted">授業がある日の昼休みの時間帯を選んでください。</p>
-              <label className="mt-3 block">
-                <span className="sr-only">昼休みの時間帯</span>
-                <span className="relative block">
-                  <svg className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 fill-none stroke-ink-muted stroke-[1.8]" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="8.5" />
-                    <path d="M12 7.8v4.7l3.2 1.8" />
-                  </svg>
-                  <select className="h-10 w-full rounded-xl border border-line bg-surface-muted/45 pr-3 pl-9 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft" name="lunchTime" defaultValue="" required>
-                    <option value="" disabled>時間帯を選択してください</option>
-                    {LUNCH_TIME_OPTIONS.map((time) => (
-                      <option key={time} value={time}>{time}</option>
-                    ))}
-                  </select>
+              <p className="mt-1 text-xs text-ink-muted">授業がある日の昼休みの開始時刻と終了時刻を入力してください。</p>
+              <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+                <label className="grid gap-1 text-xs font-bold">
+                  <span>開始時刻</span>
+                  <input
+                    className="h-10 min-w-0 rounded-xl border border-line bg-surface-muted/45 px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft"
+                    name="lunchStartTime"
+                    type="time"
+                    required
+                  />
+                </label>
+                <span className="pb-2.5 text-xs font-bold text-ink-muted" aria-hidden="true">
+                  〜
                 </span>
-              </label>
+              <label className="grid gap-1 text-xs font-bold">
+                  <span>終了時刻</span>
+                  <input
+                    className="h-10 min-w-0 rounded-xl border border-line bg-surface-muted/45 px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft"
+                    name="lunchEndTime"
+                    type="time"
+                    required
+                  />
+                </label>
+              </div>
             </fieldset>
 
              <div className="my-4 h-px bg-line sm:my-5" />

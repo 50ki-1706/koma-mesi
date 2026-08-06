@@ -14,7 +14,8 @@ import {
   INITIAL_SETUP_STORAGE_KEY_PREFIX,
   type WeekdayValue,
 } from "@/constants/initialSetup";
-import { signIn, signOut, useSession } from "@/lib/auth-client";
+import { signIn, useSession } from "@/lib/auth-client";
+import { logout } from "@/shared/auth/logout";
 
 /** 初期設定画面の表示状態と操作をまとめたコントローラー。 */
 export interface InitialSetupFormController {
@@ -76,7 +77,7 @@ export function useInitialSetup(): InitialSetupFormController {
    * @returns なし。
    */
   const handleSignOut = (): void => {
-    void signOut();
+    void logout();
   };
 
   /**
