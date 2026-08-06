@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "bradlc.vscode-tailwindcss",
+    "dsznajder.es7-react-js-snippets",
+    "github.vscode-github-actions",
+    "GitHub.vscode-pull-request-github",
+    "ms-ceintl.vscode-language-pack-ja",
+    "ms-vscode-remote.remote-containers",
+    "streetsidesoftware.code-spell-checker",
+    "sst-dev.opencode",
+    "yoavbls.pretty-ts-errors",
+    "jetpack-io.devbox"
+  ]
+}

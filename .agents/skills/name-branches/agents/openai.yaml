@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branch Naming"
+  short_description: "Create consistent Git branch names for this repository"
+  default_prompt: "Use $name-branches to choose and validate a branch name for this task."

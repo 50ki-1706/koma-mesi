@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  verify-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: devbox run -- bash -e {0}
+    env:
+      GOOGLE_CLIENT_ID: dummy-client-id-for-ci
+      GOOGLE_CLIENT_SECRET: dummy-client-secret-for-ci
+      BETTER_AUTH_SECRET: dummy-secret-for-ci-build
+      BETTER_AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+
+      - name: Install Devbox
+        uses: jetify-com/devbox-install-action@8c6a66ed6273138b1915457069de78cb52fe3bd7
+        with:
+          devbox-version: '0.17.2'
+          enable-cache: true
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify commit message
+        if: github.event_name == 'pull_request'
+        env:
+          COCOGITTO_INIT_HOOK: '1'
+        run: cog check "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+
+      - name: Verify
+        run: pnpm verify
+
+      - name: Build
+        run: pnpm build

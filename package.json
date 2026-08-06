@@ -1,0 +1,53 @@
+{
+  "name": "next-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "check": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:push": "drizzle-kit push",
+    "db:reset": "drizzle-kit reset",
+    "devcontainer:setup": "bash scripts/devcontainer/setup.sh",
+    "verify:frontend": "pnpm typecheck && pnpm check",
+    "verify": "pnpm typecheck && pnpm test:run && pnpm check"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.3",
+    "@orpc/client": "^1.14.2",
+    "@orpc/server": "^1.14.2",
+    "better-auth": "^1.6.26",
+    "drizzle-orm": "^0.45.2",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.0",
+    "@storybook/nextjs-vite": "^10.5.6",
+    "@storybook/react": "^10.5.6",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "babel-plugin-react-compiler": "1.0.0",
+    "drizzle-kit": "^0.31.10",
+    "storybook": "^10.5.6",
+    "tailwindcss": "^4",
+    "typescript": "^7",
+    "vitest": "^4.1.6"
+  },
+  "packageManager": "pnpm@11.1.2+sha512.415a1cc25974731e75455c1468371be74c5aa5fb7621b50d4056d222451609f11412f23fd602e6169f1e060466641f798597e1be961a10688836a67b16569499"
+}

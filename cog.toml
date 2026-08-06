@@ -1,0 +1,20 @@
+tag_prefix = "v"
+
+[git_hooks.commit-msg]
+script = """#!/bin/sh
+set -e
+cog verify --file $1
+"""
+
+[commit_types]
+feat = { changelog_title = "Features" }
+fix = { changelog_title = "Bug Fixes" }
+docs = { changelog_title = "Documentation" }
+style = { changelog_title = "Styling" }
+refactor = { changelog_title = "Refactoring" }
+perf = { changelog_title = "Performance" }
+test = { changelog_title = "Testing" }
+build = { changelog_title = "Build System" }
+ci = { changelog_title = "CI/CD" }
+chore = { changelog_title = "Chores" }
+revert = { changelog_title = "Reverts" }

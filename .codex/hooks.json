@@ -1,0 +1,18 @@
+{
+  "description": "Require Codex development commands to use the project Devbox environment.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "devbox run -- sh -c 'node \"$(git rev-parse --show-toplevel)/.codex/hooks/require-devbox.mjs\"'",
+            "timeout": 30,
+            "statusMessage": "Checking Devbox command policy"
+          }
+        ]
+      }
+    ]
+  }
+}

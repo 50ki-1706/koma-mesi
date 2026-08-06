@@ -1,0 +1,19 @@
+{
+  "name": "next-starter Devbox",
+  "image": "docker.io/jetpackio/devbox:latest",
+  "remoteUser": "devbox",
+  "postCreateCommand": "bash scripts/devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "YoavBls.pretty-ts-errors",
+        "biomejs.biome",
+        "streetsidesoftware.code-spell-checker",
+        "bradlc.vscode-tailwindcss",
+        "github.vscode-github-actions",
+        "GitHub.vscode-pull-request-github"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 6006]
+}
