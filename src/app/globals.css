@@ -1,13 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #09090b;
+  --color-canvas: oklch(0.975 0.012 86);
+  --color-surface: oklch(0.995 0.006 88);
+  --color-ink: oklch(0.25 0.035 75);
+  --color-muted: oklch(0.51 0.025 72);
+  --color-soft: oklch(0.67 0.022 77);
+  --color-border: oklch(0.9 0.02 82);
+  --color-accent: oklch(0.55 0.15 47);
+  --color-accent-dark: oklch(0.47 0.145 45);
+  --color-accent-soft: oklch(0.93 0.048 69);
+  --color-focus: oklch(0.66 0.13 52);
+  --color-success: oklch(0.48 0.11 153);
+  --shadow-panel: 0 28px 80px oklch(0.3 0.04 70 / 0.1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -18,8 +30,143 @@
     --foreground: #ededed;
   }
 }
+* { box-sizing: border-box; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  padding: 24px;
+  place-items: center;
+  background:
+    radial-gradient(circle at 12% 18%, oklch(0.91 0.05 68 / 0.72), transparent 31%),
+    radial-gradient(circle at 88% 83%, oklch(0.91 0.04 93 / 0.74), transparent 32%),
+    var(--color-canvas);
+}
+
+.login-panel {
+  width: min(100%, 500px);
+  padding: 64px 48px 58px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+  text-align: center;
+}
+
+.login-brand-mark { margin: 0 auto; }
+.login-brand-name { margin: 10px 0 40px; font-family: Georgia, "Yu Mincho", serif; font-size: 20px; font-weight: 700; }
+.login-panel h1 { margin: 0; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-size: clamp(30px, 6vw, 39px); font-weight: 600; line-height: 1.5; letter-spacing: 0.06em; }
+.login-description { margin: 19px 0 0; color: var(--color-muted); font-size: 14px; line-height: 1.9; }
+.google-sign-in-button { display: inline-flex; width: min(100%, 310px); height: 54px; align-items: center; justify-content: center; gap: 13px; margin-top: 40px; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-surface); color: var(--color-ink); cursor: pointer; font-size: 14px; font-weight: 650; box-shadow: 0 6px 18px oklch(0.3 0.03 70 / 0.07); transition: border-color 150ms, transform 150ms, box-shadow 150ms; }
+.google-sign-in-button:hover { border-color: var(--color-accent); transform: translateY(-1px); box-shadow: 0 9px 22px oklch(0.3 0.03 70 / 0.1); }
+.google-sign-in-button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.google-sign-in-button svg { width: 20px; }
+.login-note { margin: 16px 0 0; color: var(--color-soft); font-size: 11px; }
+.session-loader { width: 38px; height: 38px; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: 50%; animation: session-spin 800ms linear infinite; }
+
+@keyframes session-spin { to { transform: rotate(360deg); } }
+
+button, input, select { font: inherit; }
+
+.setup-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 54px 24px;
+  background:
+    radial-gradient(circle at 8% 14%, oklch(0.92 0.04 72 / 0.65), transparent 27%),
+    radial-gradient(circle at 92% 88%, oklch(0.91 0.035 92 / 0.7), transparent 30%),
+    var(--color-canvas);
+}
+
+.setup-decoration { position: absolute; border: 1px solid var(--color-border); border-radius: 999px; opacity: 0.55; }
+.setup-decoration-left { width: 270px; height: 270px; left: -170px; top: 29%; }
+.setup-decoration-right { width: 360px; height: 360px; right: -240px; bottom: 5%; }
+
+.setup-panel {
+  position: relative;
+  width: min(100%, 1040px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid oklch(0.93 0.014 78);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.setup-header { display: flex; align-items: center; height: 76px; padding: 0 56px; border-bottom: 1px solid var(--color-border); }
+.brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: var(--color-accent); color: var(--color-surface); }
+.brand-mark svg { width: 22px; fill: none; stroke: currentColor; stroke-linejoin: round; stroke-width: 1.7; }
+.brand-name { margin: 0 0 0 11px; font-family: Georgia, "Yu Mincho", serif; font-size: 19px; font-weight: 700; letter-spacing: 0.01em; }
+.step-label { margin: 0 20px 0 auto; color: var(--color-muted); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; }
+.sign-out-button { border: 0; border-left: 1px solid var(--color-border); background: transparent; padding: 4px 0 4px 20px; color: var(--color-muted); cursor: pointer; font-size: 12px; }
+.sign-out-button:hover { color: var(--color-accent-dark); }
+.sign-out-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+
+.setup-content { width: min(100%, 700px); margin: 0 auto; padding: 64px 32px 58px; }
+.intro-copy { text-align: center; }
+.eyebrow { margin: 0 0 16px; color: var(--color-accent); font-size: 11px; font-weight: 750; letter-spacing: 0.24em; }
+.intro-copy h1 { margin: 0; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-size: clamp(30px, 4vw, 40px); font-weight: 600; line-height: 1.45; letter-spacing: 0.08em; }
+.intro-description { margin: 18px 0 0; color: var(--color-muted); font-size: 14px; line-height: 1.9; }
+.intro-copy .signed-in-user { margin: 12px 0 0; color: var(--color-accent-dark); font-size: 12px; font-weight: 650; }
+.setup-form { margin-top: 58px; }
+.form-section { min-width: 0; margin: 0; padding: 0; border: 0; }
+.form-section legend { display: flex; align-items: center; padding: 0; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; }
+.section-number { display: inline-grid; width: 28px; height: 28px; margin-right: 11px; place-items: center; border-radius: 50%; background: var(--color-accent-soft); color: var(--color-accent-dark); font-family: Georgia, serif; font-size: 14px; }
+.section-help { margin: 9px 0 24px 39px; color: var(--color-muted); font-size: 12px; }
+.address-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 20px 16px; }
+.street-field { grid-column: 1 / -1; }
+.field { display: grid; gap: 9px; color: var(--color-muted); font-size: 12px; font-weight: 600; }
+.field input, .field select { width: 100%; height: 50px; border: 1px solid var(--color-border); border-radius: 9px; outline: none; background: var(--color-surface); color: var(--color-ink); font-size: 14px; font-weight: 450; transition: border-color 150ms, box-shadow 150ms; }
+.field input { padding: 0 15px; }
+.field input::placeholder { color: var(--color-soft); }
+.field input:focus, .field select:focus { border-color: var(--color-focus); box-shadow: 0 0 0 3px oklch(0.78 0.08 61 / 0.2); }
+.input-with-icon, .select-wrap { position: relative; display: block; }
+.input-with-icon > svg { position: absolute; z-index: 1; width: 19px; left: 15px; top: 50%; transform: translateY(-50%); fill: none; stroke: var(--color-accent); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; pointer-events: none; }
+.input-with-icon input, .input-with-icon select { padding-left: 45px; }
+.select-wrap::after { position: absolute; right: 17px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid var(--color-muted); border-bottom: 1.5px solid var(--color-muted); content: ""; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.field select { appearance: none; padding: 0 42px 0 15px; }
+.input-with-icon select { padding-left: 45px; }
+.form-divider { height: 1px; margin: 40px 0; background: var(--color-border); }
+.lunch-time-field { width: min(100%, 350px); margin-left: 39px; }
+.weekday-list { display: flex; gap: 10px; margin-left: 39px; }
+.weekday-option { position: relative; display: flex; flex: 1; height: 50px; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--color-border); border-radius: 9px; color: var(--color-muted); cursor: pointer; font-size: 13px; font-weight: 600; transition: border-color 150ms, background 150ms, color 150ms; }
+.weekday-option:has(input:checked) { border-color: var(--color-accent); background: var(--color-accent-soft); color: var(--color-accent-dark); }
+.weekday-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.weekday-option:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.custom-checkbox { display: grid; width: 17px; height: 17px; place-items: center; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-surface); }
+.custom-checkbox svg { width: 12px; fill: none; stroke: transparent; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+.weekday-option input:checked + .custom-checkbox { border-color: var(--color-accent); background: var(--color-accent); }
+.weekday-option input:checked + .custom-checkbox svg { stroke: var(--color-surface); }
+.submit-area { margin-top: 52px; text-align: center; }
+.submit-button { display: inline-flex; min-width: 250px; height: 54px; align-items: center; justify-content: center; gap: 20px; border: 0; border-radius: 9px; background: var(--color-accent); box-shadow: 0 10px 24px oklch(0.48 0.12 46 / 0.2); color: var(--color-surface); cursor: pointer; font-size: 14px; font-weight: 700; letter-spacing: 0.08em; transition: background 150ms, transform 150ms; }
+.submit-button:hover { background: var(--color-accent-dark); transform: translateY(-1px); }
+.submit-button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.submit-button:disabled { cursor: not-allowed; opacity: 0.45; transform: none; }
+.submit-button svg { width: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.submit-note { min-height: 18px; margin: 14px 0 0; color: var(--color-muted); font-size: 11px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .login-shell { padding: 16px 12px; }
+  .login-panel { padding: 48px 22px 44px; }
+  .setup-shell { padding: 16px 12px; }
+  .setup-panel { border-radius: 14px; }
+  .setup-header { height: 64px; padding: 0 22px; }
+  .step-label { display: none; }
+  .sign-out-button { margin-left: auto; }
+  .setup-content { padding: 44px 20px 42px; }
+  .desktop-break { display: none; }
+  .setup-form { margin-top: 44px; }
+  .address-grid { grid-template-columns: 1fr; }
+  .street-field { grid-column: auto; }
+  .section-help, .lunch-time-field, .weekday-list { margin-left: 0; }
+  .weekday-list { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .submit-button { width: 100%; min-width: 0; }
 }
