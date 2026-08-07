@@ -100,7 +100,8 @@ export const userPreferences = sqliteTable("user_preferences", {
     .default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
-    .default(sql`(unixepoch())`),
+    .default(sql`(unixepoch())`)
+    .$onUpdate(() => new Date()),
 });
 
 /* ユーザー単位の日次推薦処理とその進行状態を保持するテーブル。 */
@@ -194,7 +195,8 @@ export const restaurants = sqliteTable("restaurants", {
     .default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
-    .default(sql`(unixepoch())`),
+    .default(sql`(unixepoch())`)
+    .$onUpdate(() => new Date()),
 });
 
 /* カテゴリごとに選出されたnear・middle・farの店舗を保持するテーブル。 */
