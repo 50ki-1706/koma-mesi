@@ -1,25 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #09090b;
+  --background: oklch(0.985 0.018 91);
+  --foreground: oklch(0.27 0.035 67);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: oklch(0.995 0.008 91);
+  --color-surface-muted: oklch(0.965 0.035 88);
+  --color-brand: oklch(0.79 0.16 78);
+  --color-brand-hover: oklch(0.72 0.17 69);
+  --color-brand-soft: oklch(0.93 0.09 88);
+  --color-ink: oklch(0.27 0.035 67);
+  --color-ink-muted: oklch(0.53 0.035 70);
+  --color-line: oklch(0.88 0.045 84);
+  --color-focus: oklch(0.67 0.17 65);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #000000;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+button,
+input,
+select {
+  font: inherit;
 }
