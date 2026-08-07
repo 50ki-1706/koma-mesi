@@ -1,6 +1,6 @@
-/**
- * 認証情報と日次の飲食店推薦結果を永続化するDBスキーマを定義する。
- * SQLite上の制約により、推薦バッチ・カテゴリ・店舗間の整合性を保証する。
+/*
+  認証情報と日次の飲食店推薦結果を永続化するDBスキーマを定義する。
+  SQLite上の制約により、推薦バッチ・カテゴリ・店舗間の整合性を保証する。
  */
 import { sql } from "drizzle-orm";
 import {
@@ -17,17 +17,17 @@ import {
   RECOMMENDATION_BATCH_STATUSES,
 } from "@/constants/recommendationSchema";
 
-/**
- * CHECK制約で使う文字列値を、エスケープ済みのSQLリストへ変換する。
- *
- * @param values - SQL文字列リテラルへ変換する値。
- * @returns カンマ区切りのSQL文字列リテラル。
+/*
+  CHECK制約で使う文字列値を、エスケープ済みのSQLリストへ変換する。
+
+  @param values - SQL文字列リテラルへ変換する値。
+  @returns カンマ区切りのSQL文字列リテラル。
  */
 function toSqlStringList(values: readonly string[]): string {
   return values.map((value) => `'${value.replaceAll("'", "''")}'`).join(", ");
 }
 
-/** Better Authが管理するユーザーテーブル。 */
+/* Better Authが管理するユーザーテーブル。 */
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -38,7 +38,7 @@ export const user = sqliteTable("user", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-/** Better Authが管理するセッションテーブル。 */
+/* Better Authが管理するセッションテーブル。 */
 export const session = sqliteTable("session", {
   id: text("id").primaryKey(),
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
@@ -52,7 +52,7 @@ export const session = sqliteTable("session", {
     .references(() => user.id),
 });
 
-/** Better Authが管理する外部認証アカウントテーブル。 */
+/* Better Authが管理する外部認証アカウントテーブル。 */
 export const account = sqliteTable("account", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
@@ -75,7 +75,7 @@ export const account = sqliteTable("account", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-/** Better Authが管理する検証トークンテーブル。 */
+/* Better Authが管理する検証トークンテーブル。 */
 export const verification = sqliteTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
@@ -85,7 +85,7 @@ export const verification = sqliteTable("verification", {
   updatedAt: integer("updated_at", { mode: "timestamp" }),
 });
 
-/** ユーザーごとの推薦検索起点となる大学住所を保持するテーブル。 */
+/* ユーザーごとの推薦検索起点となる大学住所を保持するテーブル。 */
 export const userPreferences = sqliteTable("user_preferences", {
   id: text("id")
     .primaryKey()
@@ -93,7 +93,7 @@ export const userPreferences = sqliteTable("user_preferences", {
   userId: text("user_id")
     .notNull()
     .unique()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "cascade", onUpdate: "no action" }),
   campusAddress: text("campus_address").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -103,7 +103,7 @@ export const userPreferences = sqliteTable("user_preferences", {
     .default(sql`(unixepoch())`),
 });
 
-/** ユーザー単位の日次推薦処理とその進行状態を保持するテーブル。 */
+/* ユーザー単位の日次推薦処理とその進行状態を保持するテーブル。 */
 export const recommendationBatches = sqliteTable(
   "recommendation_batches",
   {
@@ -112,7 +112,10 @@ export const recommendationBatches = sqliteTable(
       .$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
       .notNull()
-      .references(() => user.id),
+      .references(() => user.id, {
+        onDelete: "cascade",
+        onUpdate: "no action",
+      }),
     targetDate: text("target_date").notNull(),
     status: text("status", { enum: RECOMMENDATION_BATCH_STATUSES })
       .notNull()
@@ -137,7 +140,7 @@ export const recommendationBatches = sqliteTable(
   ],
 );
 
-/** 推薦バッチ内で選ばれた3つのカテゴリと選択順を保持するテーブル。 */
+/* 推薦バッチ内で選ばれた3つのカテゴリと選択順を保持するテーブル。 */
 export const recommendationCategories = sqliteTable(
   "recommendation_categories",
   {
@@ -146,7 +149,10 @@ export const recommendationCategories = sqliteTable(
       .$defaultFn(() => crypto.randomUUID()),
     batchId: text("batch_id")
       .notNull()
-      .references(() => recommendationBatches.id),
+      .references(() => recommendationBatches.id, {
+        onDelete: "cascade",
+        onUpdate: "no action",
+      }),
     category: text("category", { enum: HOTPEPPER_GENRES }).notNull(),
     selectionOrder: integer("selection_order").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" })
@@ -173,7 +179,7 @@ export const recommendationCategories = sqliteTable(
   ],
 );
 
-/** Google Places上の店舗を再利用可能なマスタとして保持するテーブル。 */
+/* Google Places上の店舗を再利用可能なマスタとして保持するテーブル。 */
 export const restaurants = sqliteTable("restaurants", {
   id: text("id")
     .primaryKey()
@@ -191,7 +197,7 @@ export const restaurants = sqliteTable("restaurants", {
     .default(sql`(unixepoch())`),
 });
 
-/** カテゴリごとに選出されたnear・middle・farの店舗を保持するテーブル。 */
+/* カテゴリごとに選出されたnear・middle・farの店舗を保持するテーブル。 */
 export const recommendations = sqliteTable(
   "recommendations",
   {
@@ -200,13 +206,22 @@ export const recommendations = sqliteTable(
       .$defaultFn(() => crypto.randomUUID()),
     batchId: text("batch_id")
       .notNull()
-      .references(() => recommendationBatches.id),
+      .references(() => recommendationBatches.id, {
+        onDelete: "cascade",
+        onUpdate: "no action",
+      }),
     recommendationCategoryId: text("recommendation_category_id")
       .notNull()
-      .references(() => recommendationCategories.id),
+      .references(() => recommendationCategories.id, {
+        onDelete: "cascade",
+        onUpdate: "no action",
+      }),
     restaurantId: text("restaurant_id")
       .notNull()
-      .references(() => restaurants.id),
+      .references(() => restaurants.id, {
+        onDelete: "restrict",
+        onUpdate: "no action",
+      }),
     distanceGroup: text("distance_group", { enum: DISTANCE_GROUPS }).notNull(),
     distanceMeters: integer("distance_meters").notNull(),
     displayOrder: integer("display_order").notNull(),
