@@ -115,9 +115,15 @@ Set the authorized redirect URI for Google OAuth to `http://localhost:3000/api/a
 
 ### 4. Set Up the Database
 
+Run inside a [Devbox shell](#2-prepare-the-development-environment) (after `devbox shell`, in the VS Code Devbox integrated terminal, or inside the Dev Container).
+
 ```bash
 pnpm db:push
-# Via the Devbox CLI
+```
+
+To run without entering the Devbox shell, prefix with `devbox run --`:
+
+```bash
 devbox run -- pnpm db:push
 ```
 
@@ -128,7 +134,11 @@ To use version-controlled migrations instead, run the following commands.
 ```bash
 pnpm db:generate
 pnpm db:migrate
-# Via the Devbox CLI
+```
+
+Or:
+
+```bash
 devbox run -- pnpm db:generate
 devbox run -- pnpm db:migrate
 ```
@@ -137,7 +147,11 @@ devbox run -- pnpm db:migrate
 
 ```bash
 pnpm dev
-# Via the Devbox CLI
+```
+
+Or:
+
+```bash
 devbox run -- pnpm dev
 ```
 
@@ -164,7 +178,11 @@ Start Storybook to develop UI components.
 
 ```bash
 pnpm storybook
-# Via the Devbox CLI
+```
+
+Or:
+
+```bash
 devbox run -- pnpm storybook
 ```
 
