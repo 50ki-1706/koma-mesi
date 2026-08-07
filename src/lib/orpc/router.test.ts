@@ -15,6 +15,8 @@ async function recreateTables() {
   // FK制約を有効化
   await db.run("PRAGMA foreign_keys = ON");
   // FK順序を考慮して逆順にDROP
+  await db.run("DROP TABLE IF EXISTS recommendation");
+  await db.run("DROP TABLE IF EXISTS genre");
   await db.run("DROP TABLE IF EXISTS counter");
   await db.run("DROP TABLE IF EXISTS post");
   await db.run("DROP TABLE IF EXISTS verification");
@@ -39,6 +41,12 @@ async function recreateTables() {
   );
   await db.run(
     `CREATE TABLE post (id integer PRIMARY KEY AUTOINCREMENT, title text NOT NULL, created_at integer NOT NULL)`,
+  );
+  await db.run(
+    `CREATE TABLE genre (id integer PRIMARY KEY AUTOINCREMENT, name text NOT NULL, sort_order integer NOT NULL DEFAULT 0, created_at integer NOT NULL)`,
+  );
+  await db.run(
+    `CREATE TABLE recommendation (id integer PRIMARY KEY AUTOINCREMENT, genre_id integer NOT NULL REFERENCES genre(id) ON DELETE CASCADE, name text NOT NULL, address text NOT NULL, distance_meters integer NOT NULL, duration_minutes integer NOT NULL, photo_url text NOT NULL, price_yen integer NOT NULL, platform_url text NOT NULL, is_featured integer NOT NULL DEFAULT 0, created_at integer NOT NULL, updated_at integer NOT NULL)`,
   );
 }
 
@@ -66,6 +74,33 @@ async function createAuthContext(
 
 // テスト用の未認証コンテキスト
 const unauthContext: ORPCContext = { db, session: null };
+
+interface SeedRecommendationInput {
+  genreId: number;
+  name: string;
+  isFeatured: boolean;
+}
+
+// テスト用のレコメンドデータを1件挿入する
+async function seedRecommendation({
+  genreId,
+  name,
+  isFeatured,
+}: SeedRecommendationInput) {
+  await db.insert(schema.recommendations).values({
+    genreId,
+    name,
+    address: "東京都新宿区西新宿1-2-3",
+    distanceMeters: 500,
+    durationMinutes: 7,
+    photoUrl: "https://example.com/photo.jpg",
+    priceYen: 800,
+    platformUrl: "https://example.com/restaurant",
+    isFeatured,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+}
 
 async function createAuthedClient(userId = "test-user-id") {
   const context = await createAuthContext(userId);
@@ -170,6 +205,92 @@ describe("counter procedures", () => {
       await expect(client.counter.get()).rejects.toThrow("UNAUTHORIZED");
       await expect(client.counter.increment()).rejects.toThrow("UNAUTHORIZED");
       await expect(client.counter.decrement()).rejects.toThrow("UNAUTHORIZED");
+    });
+  });
+});
+
+describe("recommendation procedures", () => {
+  beforeEach(async () => {
+    await recreateTables();
+  });
+
+  describe("recommendation.listFeaturedByGenre", () => {
+    it("ジャンルごとにfeaturedな店を1件ずつ、表示順で返す", async () => {
+      const [ramen] = await db
+        .insert(schema.genres)
+        .values({ name: "ラーメン", sortOrder: 2, createdAt: new Date() })
+        .returning();
+      const [curry] = await db
+        .insert(schema.genres)
+        .values({ name: "カレー", sortOrder: 1, createdAt: new Date() })
+        .returning();
+
+      await seedRecommendation({
+        genreId: ramen.id,
+        name: "featuredラーメン店",
+        isFeatured: true,
+      });
+      await seedRecommendation({
+        genreId: curry.id,
+        name: "featuredカレー店",
+        isFeatured: true,
+      });
+
+      const client = await createAuthedClient();
+      const result = await client.recommendation.listFeaturedByGenre();
+
+      expect(result).toHaveLength(2);
+      expect(result[0].genre.name).toBe("カレー");
+      expect(result[0].recommendation.name).toBe("featuredカレー店");
+      expect(result[1].genre.name).toBe("ラーメン");
+      expect(result[1].recommendation.name).toBe("featuredラーメン店");
+    });
+
+    it("featuredでない候補は結果に含まれない", async () => {
+      const [genre] = await db
+        .insert(schema.genres)
+        .values({ name: "ラーメン", sortOrder: 1, createdAt: new Date() })
+        .returning();
+
+      await seedRecommendation({
+        genreId: genre.id,
+        name: "非featured店",
+        isFeatured: false,
+      });
+
+      const client = await createAuthedClient();
+      const result = await client.recommendation.listFeaturedByGenre();
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("featuredな店が無いジャンルは結果から除外される", async () => {
+      const [withFeatured] = await db
+        .insert(schema.genres)
+        .values({ name: "ラーメン", sortOrder: 1, createdAt: new Date() })
+        .returning();
+      await db
+        .insert(schema.genres)
+        .values({ name: "カレー", sortOrder: 2, createdAt: new Date() });
+
+      await seedRecommendation({
+        genreId: withFeatured.id,
+        name: "featuredラーメン店",
+        isFeatured: true,
+      });
+
+      const client = await createAuthedClient();
+      const result = await client.recommendation.listFeaturedByGenre();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].genre.name).toBe("ラーメン");
+    });
+
+    it("未認証で呼び出すとエラー", async () => {
+      const client = createUnauthedClient();
+      await expect(client.recommendation.listFeaturedByGenre()).rejects.toThrow(
+        "UNAUTHORIZED",
+      );
     });
   });
 });

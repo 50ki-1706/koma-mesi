@@ -68,3 +68,29 @@ export const posts = sqliteTable("post", {
   title: text("title").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+export const genres = sqliteTable("genre", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+export const recommendations = sqliteTable("recommendation", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  genreId: integer("genre_id")
+    .notNull()
+    .references(() => genres.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  address: text("address").notNull(),
+  distanceMeters: integer("distance_meters").notNull(),
+  durationMinutes: integer("duration_minutes").notNull(),
+  photoUrl: text("photo_url").notNull(),
+  priceYen: integer("price_yen").notNull(),
+  platformUrl: text("platform_url").notNull(),
+  isFeatured: integer("is_featured", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
