@@ -33,6 +33,7 @@ export function RecommendationCarousel({
   onSelectCard,
 }: RecommendationCarouselProps) {
   const startXRef = useRef<number | null>(null);
+  const didSwipeRef = useRef(false);
   const currentItem = items[currentIndex];
 
   /**
@@ -43,6 +44,7 @@ export function RecommendationCarousel({
    */
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>): void => {
     startXRef.current = event.clientX;
+    didSwipeRef.current = false;
   };
 
   /**
@@ -60,8 +62,10 @@ export function RecommendationCarousel({
 
     const deltaX = event.clientX - startX;
     if (deltaX >= SWIPE_THRESHOLD_PX) {
+      didSwipeRef.current = true;
       onSwipeNext();
     } else if (deltaX <= -SWIPE_THRESHOLD_PX) {
+      didSwipeRef.current = true;
       onSwipePrevious();
     }
   };
@@ -73,6 +77,20 @@ export function RecommendationCarousel({
    */
   const handlePointerCancel = (): void => {
     startXRef.current = null;
+  };
+
+  /**
+   * カード選択を処理する。直前の操作がスワイプだった場合は無視する。
+   * スワイプ後にブラウザが発火するclickでボトムシートが誤って開くのを防ぐ。
+   *
+   * @returns なし。
+   */
+  const handleSelectCard = (): void => {
+    if (didSwipeRef.current) {
+      didSwipeRef.current = false;
+      return;
+    }
+    onSelectCard();
   };
 
   if (currentItem === undefined) {
@@ -87,13 +105,9 @@ export function RecommendationCarousel({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
-        <RecommendationCard item={currentItem} onSelect={onSelectCard} />
+        <RecommendationCard item={currentItem} onSelect={handleSelectCard} />
       </div>
-      <div
-        className="mt-4 flex shrink-0 items-center justify-center gap-1.5"
-        aria-label="ジャンル"
-        role="tablist"
-      >
+      <div className="mt-4 flex shrink-0 items-center justify-center gap-1.5">
         {items.map((item, index) => (
           <span
             key={item.genre.id}
