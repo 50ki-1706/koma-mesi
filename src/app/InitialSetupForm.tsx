@@ -64,8 +64,7 @@ export function InitialSetupForm({
             <svg
               className="size-5 fill-current"
               viewBox="0 0 32 32"
-              role="img"
-              aria-label="アイコンの説明"
+              aria-hidden="true"
             >
               <path d="M6.5 6.5h5.8a3.7 3.7 0 0 1 3.7 3.7v15.3h-5.8a3.7 3.7 0 0 1-3.7-3.7V6.5Z" />
               <path d="M25.5 6.5h-5.8a3.7 3.7 0 0 0-3.7 3.7v15.3h5.8a3.7 3.7 0 0 0 3.7-3.7V6.5Z" />
@@ -313,7 +312,11 @@ function LoginPanel({ onGoogleSignIn }: LoginPanelProps) {
           className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand text-surface shadow-md"
           aria-hidden="true"
         >
-          <svg className="size-7 fill-current" viewBox="0 0 32 32">
+          <svg
+            className="size-7 fill-current"
+            viewBox="0 0 32 32"
+            aria-hidden="true"
+          >
             <path d="M6.5 6.5h5.8a3.7 3.7 0 0 1 3.7 3.7v15.3h-5.8a3.7 3.7 0 0 1-3.7-3.7V6.5Z" />
             <path d="M25.5 6.5h-5.8a3.7 3.7 0 0 0-3.7 3.7v15.3h5.8a3.7 3.7 0 0 0 3.7-3.7V6.5Z" />
           </svg>

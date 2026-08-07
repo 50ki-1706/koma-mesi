@@ -5,7 +5,6 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { logout } from "@/shared/auth/logout";
 
 /** ホーム画面から実行できる操作。 */
@@ -19,7 +18,6 @@ interface HomeController {
  * @returns ログアウト操作。
  */
 export function useHome(): HomeController {
-  const _router = useRouter();
   /**
    * 現在の認証セッションからログアウトする。
    *
