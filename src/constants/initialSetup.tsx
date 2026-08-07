@@ -69,7 +69,9 @@ export const DEFAULT_LUNCH_DAYS: WeekdayValue[] = [
   "friday",
 ];
 
-export const INITIAL_SETUP_DESTINATION = "/home";
-
+export const INITIAL_SETUP_DESTINATION = "/recommendations";
 export const INITIAL_SETUP_STORAGE_KEY_PREFIX =
   "koma-mesi:initial-setup-completed";
+
+export const INITIAL_SETUP_DETAILS_STORAGE_KEY_PREFIX =
+  "koma-mesi:initial-setup-details";
