@@ -15,6 +15,13 @@
       "when": 1786095457756,
       "tag": "0001_famous_titania",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786130489370,
+      "tag": "0002_black_sunfire",
+      "breakpoints": true
     }
   ]
 }
