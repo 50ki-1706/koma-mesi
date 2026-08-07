@@ -8,6 +8,13 @@
       "when": 1786001383750,
       "tag": "0000_light_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786122576780,
+      "tag": "0001_aromatic_banshee",
+      "breakpoints": true
     }
   ]
 }
