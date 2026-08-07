@@ -9,9 +9,9 @@ import { describe, expect, it } from "vitest";
 import * as schema from "./schema";
 
 /**
- * 全マイグレーションを適用したインメモリDBを作成する。
+ * 全マイグレーションを適用したインメモリSQLiteのテスト用DBを作成する。
  *
- * @returns テスト用のDBとクライアント。
+ * @returns `client`はテスト終了時のclose処理に使うLibSQLクライアント、`db`はテスト対象を操作するDrizzleインスタンス。
  */
 async function createTestDatabase() {
   const client = createClient({ url: ":memory:" });
@@ -49,7 +49,7 @@ async function insertTestUser(db: TestDatabase, userId: string): Promise<void> {
  *
  * @param db - テスト用DB。
  * @param userId - 関連レコードを所有するユーザーID。
- * @returns 登録したバッチ、カテゴリ、店舗。
+ * @returns `batch`は推薦処理単位、`category`はそのバッチに属する推薦カテゴリ、`restaurant`は推薦対象の店舗。
  */
 async function seedRecommendationDependencies(
   db: TestDatabase,
