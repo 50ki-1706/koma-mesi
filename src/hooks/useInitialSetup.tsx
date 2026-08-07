@@ -38,8 +38,11 @@ export function useInitialSetup(): InitialSetupFormController {
   const router = useRouter();
   const { data: session, isPending: isSessionPending } = useSession();
   const userId = session?.user.id ?? null;
-  const [checkedUserId, setCheckedUserId] = useState<string | null | undefined>(undefined);
-  const [selectedDays, setSelectedDays] = useState<WeekdayValue[]>(DEFAULT_LUNCH_DAYS);
+  const [checkedUserId, setCheckedUserId] = useState<string | null | undefined>(
+    undefined,
+  );
+  const [selectedDays, setSelectedDays] =
+    useState<WeekdayValue[]>(DEFAULT_LUNCH_DAYS);
 
   useEffect(() => {
     if (isSessionPending) {

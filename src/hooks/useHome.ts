@@ -19,14 +19,14 @@ interface HomeController {
  * @returns ログアウト操作。
  */
 export function useHome(): HomeController {
-  const router = useRouter();
+  const _router = useRouter();
   /**
    * 現在の認証セッションからログアウトする。
    *
    * @returns なし。
    */
   const handleSignOut = (): void => {
-        void logout();
+    void logout();
   };
 
   return { handleSignOut };

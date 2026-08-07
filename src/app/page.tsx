@@ -9,6 +9,6 @@ import { useInitialSetup } from "@/hooks/useInitialSetup";
  * @returns 初期設定フォームを含むページ。
  */
 export default function Home() {
-    const setup = useInitialSetup();
-    return <InitialSetupForm {...setup} />;
+  const setup = useInitialSetup();
+  return <InitialSetupForm {...setup} />;
 }

@@ -3,8 +3,6 @@
  * 表示順と型を一箇所に集約し、フォーム間の差異を防ぐ。
  */
 
-
-
 export const PREFECTURES = [
   "北海道",
   "青森県",
@@ -65,8 +63,13 @@ export const WEEKDAYS = [
 
 export type WeekdayValue = (typeof WEEKDAYS)[number]["value"];
 
-export const DEFAULT_LUNCH_DAYS: WeekdayValue[] = ["monday", "wednesday", "friday"];
+export const DEFAULT_LUNCH_DAYS: WeekdayValue[] = [
+  "monday",
+  "wednesday",
+  "friday",
+];
 
 export const INITIAL_SETUP_DESTINATION = "/home";
 
-export const INITIAL_SETUP_STORAGE_KEY_PREFIX = "koma-mesi:initial-setup-completed";
+export const INITIAL_SETUP_STORAGE_KEY_PREFIX =
+  "koma-mesi:initial-setup-completed";
