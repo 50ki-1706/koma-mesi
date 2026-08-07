@@ -1,0 +1,272 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# レビュー言語を日本語に設定
+language: "ja"
+
+# レビュートーン: 技術用語は英語のまま、丁寧な日本語で
+tone_instructions: "日本語で丁寧にレビューしてください。技術用語は英語のまま使用し、具体的なコード例を示してください。"
+
+reviews:
+  # アーキテクチャやセキュリティの指摘を積極的に行う
+  profile: "assertive"
+
+  # PRのサマリーを日本語で生成
+  high_level_summary: true
+  high_level_summary_instructions: "日本語で簡潔に概要をまとめてください。変更の目的、影響範囲、注意すべき点を記載してください。"
+
+  # ウォークスルーは折りたたみ
+  collapse_walkthrough: true
+
+  # シーケンス図を生成（アーキテクチャ理解に有用）
+  sequence_diagrams: true
+
+  # コードレビューの工数見積もり
+  estimate_code_review_effort: true
+
+  # 詩の生成は無効化（不要なノイズを避ける）
+  poem: false
+
+  # ステータス表示
+  review_status: true
+  commit_status: true
+
+  # グローバルレビュー指示
+  instructions: |
+    このプロジェクトは Next.js 16 (App Router) + TypeScript + Drizzle ORM + better-auth + oRPC で構成されています。
+    以下の観点を重点的にレビューしてください。
+
+    ## セキュリティ（OWASP Top 10 準拠）
+    - A01: 壊れたアクセス制御 — 認証・認可の欠落、IDOR、権限昇格
+    - A02: 暗号化の失敗 — センシティブデータの平文送信、不適切なハッシュ化
+    - A03: インジェクション — SQLインジェクション、XSS、コマンドインジェクション
+    - A04: 安全でない設計 — ビジネスロジックの脆弱性、脅威モデルの欠如
+    - A05: セキュリティ設定のミス — 不要な機能の有効化、デフォルト設定の放置
+    - A06: 脆弱なコンポーネント — 既知の脆弱性を持つ依存関係の使用
+    - A07: 認証の失敗 — セッション管理の不備、弱いパスワードポリシー
+    - A08: データ完全性の失敗 — 信頼できないソースからのデータ検証不足
+    - A09: ログ・モニタリングの失敗 — セキュリティイベントの記録不足
+    - A10: SSRF — サーバーサイドリクエストフォージェリ
+
+    ## アーキテクチャ
+    - Controller → Service → Repository → Model の4層分離が守られているか（規模に応じて適用。小さな処理で空の層を作らないこと）
+    - 関心の分離（Separation of Concerns）が適切か
+    - page.tsx にロジックが直接書かれていないか（カスタムフックに分離すべき）
+    - 共通コンポーネントが src/shared/components/ に配置されているか
+    - 定数が src/constants/ に定義されているか
+    - コロケーション原則が守られているか
+
+    ## コード品質
+    - any 型の使用禁止（unknown + 型ガードを使用）
+    - TSDoc が記述されているか（@param, @returns 等）
+    - ファイル冒頭に役割・責務の記述があるか
+    - KISS / DRY / YAGNI 原則の遵守
+    - Zod v4 による入力バリデーションの実施
+    - 絵文字は使用しない
+
+    ## テスト方針
+    - バックエンド（API、Service、Repository）のテストコードは必須
+    - フロントエンド（ページ、コンポーネント）のテストコードは不要
+
+    ## 指摘しないこと
+    - コードスタイル・フォーマット（Biome が担当）
+    - import の順序（Biome が担当）
+    - 行の長さ（Biome が担当）
+
+  # パス別のレビュー指示
+  path_instructions:
+    # API ルート（最もセキュリティ重視）
+    - path: "src/app/api/**"
+      instructions: |
+        API エンドポイントのセキュリティレビューを最優先で実施してください。
+        - 認証・認可チェックが全てのルートに適用されているか（公開エンドポイントを除く）
+        - 入力バリデーション（Zod スキーマ）が全パラメータに適用されているか
+        - SQL インジェクション対策（Drizzle のパラメータ化クエリ使用）
+        - レート制限の検討
+        - 適切な HTTP ステータスコードの返却
+        - エラーレスポンスにセンシティブ情報が含まれていないか
+        - CORS 設定の適切性
+        - Controller → Service → Repository の層分離が守られているか
+
+    # データベース関連
+    - path: "src/db/**"
+      instructions: |
+        データベース関連コードのレビュー:
+        - SQL インジェクション対策（パラメータ化クエリの使用）
+        - トランザクションの適切な使用（複数の書き込み操作時）
+        - データベース接続の適切な管理
+        - スキーマ設計の適切性（正規化、インデックス）
+
+    # 認証関連（ファイル）
+    - path: "src/lib/auth.ts"
+      instructions: |
+        認証関連コードのレビュー:
+        - セッション管理の安全性
+        - トークンの適切な有効期限設定
+        - OAuth プロバイダー設定の安全性
+        - CSRF 対策
+        - セキュリティヘッダーの設定
+
+    # oRPC ルーター
+    - path: "src/lib/orpc/**"
+      instructions: |
+        oRPC ルーターのレビュー:
+        - protectedProcedure の適切な使用（認証が必要なルートの保護）
+        - 入力スキーマのバリデーション
+        - エラーハンドリングの適切性（UNAUTHORIZED 等の適切なステータス）
+        - コンテキスト（session, db）の適切な利用
+
+    # フロントエンドページ
+    - path: "src/app/**/page.tsx"
+      instructions: |
+        ページコンポーネントのレビュー:
+        - ロジックがカスタムフック（src/hooks/）に分離されているか
+        - クライアントコンポーネントとサーバーコンポーネントの使い分け
+        - センシティブデータがクライアント側に漏れていないか
+        - XSS 対策（dangerouslySetInnerHTML の不使用、または信頼できるサニタイザの使用時のみ許可）
+
+    # 共通コンポーネント
+    - path: "src/shared/components/**"
+      instructions: |
+        共通UIコンポーネントのレビュー:
+        - 再利用性の高い設計か
+        - デザイントークン（oklch）が使用されているか（Tailwind デフォルトカラー不使用）
+        - アクセシビリティ（ARIA属性、キーボード操作）
+        - Props の型定義が適切か
+
+    # 環境変数・設定ファイル
+    - path: ".env*"
+      instructions: |
+        環境変数ファイルのレビュー:
+        - シークレットやAPIキーがハードコードされていないか
+        - .env.local や .env.production が .gitignore に含まれているか
+        - 環境変数の命名規則が適切か
+
+    # ルート設定ファイル
+    - path: "next.config.ts"
+      instructions: |
+        Next.js 設定のレビュー:
+        - セキュリティヘッダーの設定
+        - CSP (Content Security Policy) の設定
+        - 不要な機能の有効化がないか
+
+    - path: "tsconfig.json"
+      instructions: |
+        TypeScript 設定のレビュー:
+        - strict モードが有効か
+        - 型安全性を損なう設定がないか
+
+    # マイグレーション
+    - path: "drizzle/**"
+      instructions: |
+        データベースマイグレーションのレビュー:
+        - 破壊的変更（DROP TABLE, DROP COLUMN）が含まれていないか
+        - ロールバック戦略があるか
+        - データ損失のリスク評価
+        - マイグレーションの順序が正しいか
+
+    # GitHub Actions
+    - path: ".github/workflows/**"
+      instructions: |
+        CI/CD ワークフローのレビュー:
+        - シークレットの適切な管理
+        - ワークフローの権限（permissions）が最小限か
+        - 依存関係のキャッシュの安全性
+        - インジェクションリスク（${{ github.event.* }} の安全な使用）
+
+    # テストコード
+    - path: "**/*.test.*"
+      instructions: |
+        テストコードのレビュー:
+        - エッジケースがカバーされているか
+        - テスト名が明確で意図が伝わるか
+        - モックの適切な使用
+        - バックエンドのテストが十分か
+
+    # Drizzle 設定
+    - path: "drizzle.config.ts"
+      instructions: |
+        Drizzle 設定のレビュー:
+        - データベース接続情報の適切な管理
+        - マイグレーション出力先の適切性
+
+    # パッケージ設定
+    - path: "package.json"
+      instructions: |
+        依存関係のレビュー:
+        - 既知の脆弱性を持つパッケージがないか
+        - 不要な依存関係が含まれていないか
+        - バージョン指定の適切性
+
+  # レビュー対象のパスフィルター
+  path_filters:
+    - "src/**"
+    - "drizzle/**"
+    - ".github/**"
+    - ".env*"
+    - "next.config.ts"
+    - "tsconfig.json"
+    - "drizzle.config.ts"
+    - "package.json"
+    - "!**/*.generated.*"
+    - "!**/node_modules/**"
+    - "!**/.next/**"
+    - "!**/dist/**"
+    - "!**/coverage/**"
+    - "!**/.storybook/**"
+    - "!pnpm-lock.yaml"
+    - "!devbox.lock"
+
+  # 自動レビュー設定
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - "main"
+    ignore_title_keywords:
+      - "WIP"
+      - "[skip review]"
+
+  # マージ前チェック
+  pre_merge_checks:
+    title:
+      mode: "warning"
+      requirements: "Conventional Commits 形式に従ってください（例: feat: ..., fix: ...）"
+    custom_checks:
+      - mode: "error"
+        name: "セキュリティ確認"
+        instructions: "シークレット、APIキー、トークンがコードにハードコードされていないことを確認してください。"
+
+  # セキュリティツールの明示的有効化
+  tools:
+    semgrep:
+      enabled: true
+    gitleaks:
+      enabled: true
+    trufflehog:
+      enabled: true
+    trivy:
+      enabled: true
+    zizmor:
+      enabled: true
+
+# チャット設定
+chat:
+  art: false
+  auto_reply: true
+
+# ナレッジベース
+knowledge_base:
+  opt_out: false
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "**/AGENTS.md"
+      - "**/.github/copilot-instructions.md"
+  learnings:
+    scope: "auto"
+
+# コード生成（TSDoc を日本語で）
+code_generation:
+  docstrings:
+    language: "ja"
