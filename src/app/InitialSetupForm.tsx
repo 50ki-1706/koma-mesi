@@ -28,10 +28,9 @@ export function InitialSetupForm({
         className="grid h-dvh place-items-center overflow-hidden bg-background"
         aria-busy="true"
       >
-        <div
+        <output
           className="size-9 animate-spin rounded-full border-4 border-brand-soft border-t-brand"
           aria-label="ログイン状態を確認しています"
-          role="status"
         />
       </main>
     );
