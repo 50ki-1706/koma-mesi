@@ -74,10 +74,18 @@ export function BottomSheet({
         return;
       }
 
-      if (!event.shiftKey && document.activeElement === last) {
+      const isSheetItselfActive = document.activeElement === sheetRef.current;
+
+      if (
+        !event.shiftKey &&
+        (isSheetItselfActive || document.activeElement === last)
+      ) {
         event.preventDefault();
         first.focus();
-      } else if (event.shiftKey && document.activeElement === first) {
+      } else if (
+        event.shiftKey &&
+        (isSheetItselfActive || document.activeElement === first)
+      ) {
         event.preventDefault();
         last.focus();
       }
