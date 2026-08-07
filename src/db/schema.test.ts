@@ -5,7 +5,7 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import * as schema from "./schema";
 
 /**
@@ -114,226 +114,186 @@ async function expectDatabaseError(
 }
 
 describe("daily recommendation schema", () => {
+  let client: ReturnType<typeof createClient> | undefined;
+  let db: TestDatabase;
+
+  beforeEach(async () => {
+    const testDatabase = await createTestDatabase();
+    client = testDatabase.client;
+    db = testDatabase.db;
+  });
+
+  afterEach(() => {
+    client?.close();
+    client = undefined;
+  });
+
   it("推薦バッチから3距離帯の店舗まで保存できる", async () => {
-    const { client, db } = await createTestDatabase();
-
-    try {
-      const { batch, category, restaurant } =
-        await seedRecommendationDependencies(db, "user-1");
-      const [preference] = await db
-        .insert(schema.userPreferences)
-        .values({
-          userId: "user-1",
-          campusAddress: "東京都千代田区千代田1-1",
-        })
-        .returning();
-      const [recommendation] = await db
-        .insert(schema.recommendations)
-        .values({
-          batchId: batch.id,
-          recommendationCategoryId: category.id,
-          restaurantId: restaurant.id,
-          distanceGroup: "near",
-          distanceMeters: 320,
-          displayOrder: 1,
-        })
-        .returning();
-
-      expect(preference.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
-      );
-      expect(batch.status).toBe("pending");
-      expect(recommendation).toMatchObject({
-        batchId: batch.id,
-        recommendationCategoryId: category.id,
-        restaurantId: restaurant.id,
-        distanceGroup: "near",
-      });
-    } finally {
-      client.close();
-    }
-  });
-
-  it("同じユーザーと対象日の推薦バッチを重複登録できない", async () => {
-    const { client, db } = await createTestDatabase();
-
-    try {
-      await insertTestUser(db, "user-2");
-      await db
-        .insert(schema.recommendationBatches)
-        .values({ userId: "user-2", targetDate: "2026-08-08" });
-
-      await expectDatabaseError(
-        db
-          .insert(schema.recommendationBatches)
-          .values({ userId: "user-2", targetDate: "2026-08-08" }),
-        /UNIQUE constraint failed: recommendation_batches\.user_id, recommendation_batches\.target_date/,
-      );
-    } finally {
-      client.close();
-    }
-  });
-
-  it("カテゴリの選択順を1から3に制限する", async () => {
-    const { client, db } = await createTestDatabase();
-
-    try {
-      await insertTestUser(db, "user-3");
-      const [batch] = await db
-        .insert(schema.recommendationBatches)
-        .values({ userId: "user-3", targetDate: "2026-08-08" })
-        .returning();
-
-      await expectDatabaseError(
-        db.insert(schema.recommendationCategories).values({
-          batchId: batch.id,
-          category: "ラーメン",
-          selectionOrder: 4,
-        }),
-        /CHECK constraint failed: recommendation_categories_selection_order_check/,
-      );
-    } finally {
-      client.close();
-    }
-  });
-
-  it("負の距離を登録できない", async () => {
-    const { client, db } = await createTestDatabase();
-
-    try {
-      const { batch, category, restaurant } =
-        await seedRecommendationDependencies(db, "user-distance");
-
-      await expectDatabaseError(
-        db.insert(schema.recommendations).values({
-          batchId: batch.id,
-          recommendationCategoryId: category.id,
-          restaurantId: restaurant.id,
-          distanceGroup: "near",
-          distanceMeters: -1,
-          displayOrder: 1,
-        }),
-        /CHECK constraint failed: recommendations_distance_meters_check/,
-      );
-    } finally {
-      client.close();
-    }
-  });
-
-  it.each([0, 4])("表示順に%dを登録できない", async (displayOrder) => {
-    const { client, db } = await createTestDatabase();
-
-    try {
-      const { batch, category, restaurant } =
-        await seedRecommendationDependencies(db, `user-order-${displayOrder}`);
-
-      await expectDatabaseError(
-        db.insert(schema.recommendations).values({
-          batchId: batch.id,
-          recommendationCategoryId: category.id,
-          restaurantId: restaurant.id,
-          distanceGroup: "near",
-          distanceMeters: 320,
-          displayOrder,
-        }),
-        /CHECK constraint failed: recommendations_display_order_check/,
-      );
-    } finally {
-      client.close();
-    }
-  });
-
-  it("同じカテゴリに同じ距離帯を重複登録できない", async () => {
-    const { client, db } = await createTestDatabase();
-
-    try {
-      const { batch, category, restaurant } =
-        await seedRecommendationDependencies(db, "user-distance-group");
-      await db.insert(schema.recommendations).values({
+    const { batch, category, restaurant } =
+      await seedRecommendationDependencies(db, "user-1");
+    const [preference] = await db
+      .insert(schema.userPreferences)
+      .values({
+        userId: "user-1",
+        campusAddress: "東京都千代田区千代田1-1",
+      })
+      .returning();
+    const [recommendation] = await db
+      .insert(schema.recommendations)
+      .values({
         batchId: batch.id,
         recommendationCategoryId: category.id,
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: 320,
         displayOrder: 1,
-      });
+      })
+      .returning();
 
-      await expectDatabaseError(
-        db.insert(schema.recommendations).values({
-          batchId: batch.id,
-          recommendationCategoryId: category.id,
-          restaurantId: restaurant.id,
-          distanceGroup: "near",
-          distanceMeters: 400,
-          displayOrder: 2,
-        }),
-        /UNIQUE constraint failed: recommendations\.recommendation_category_id, recommendations\.distance_group/,
-      );
-    } finally {
-      client.close();
-    }
+    expect(preference.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+    expect(batch.status).toBe("pending");
+    expect(recommendation).toMatchObject({
+      batchId: batch.id,
+      recommendationCategoryId: category.id,
+      restaurantId: restaurant.id,
+      distanceGroup: "near",
+    });
+  });
+
+  it("同じユーザーと対象日の推薦バッチを重複登録できない", async () => {
+    await insertTestUser(db, "user-2");
+    await db
+      .insert(schema.recommendationBatches)
+      .values({ userId: "user-2", targetDate: "2026-08-08" });
+
+    await expectDatabaseError(
+      db
+        .insert(schema.recommendationBatches)
+        .values({ userId: "user-2", targetDate: "2026-08-08" }),
+      /UNIQUE constraint failed: recommendation_batches\.user_id, recommendation_batches\.target_date/,
+    );
+  });
+
+  it("カテゴリの選択順を1から3に制限する", async () => {
+    await insertTestUser(db, "user-3");
+    const [batch] = await db
+      .insert(schema.recommendationBatches)
+      .values({ userId: "user-3", targetDate: "2026-08-08" })
+      .returning();
+
+    await expectDatabaseError(
+      db.insert(schema.recommendationCategories).values({
+        batchId: batch.id,
+        category: "ラーメン",
+        selectionOrder: 4,
+      }),
+      /CHECK constraint failed: recommendation_categories_selection_order_check/,
+    );
+  });
+
+  it("負の距離を登録できない", async () => {
+    const { batch, category, restaurant } =
+      await seedRecommendationDependencies(db, "user-distance");
+
+    await expectDatabaseError(
+      db.insert(schema.recommendations).values({
+        batchId: batch.id,
+        recommendationCategoryId: category.id,
+        restaurantId: restaurant.id,
+        distanceGroup: "near",
+        distanceMeters: -1,
+        displayOrder: 1,
+      }),
+      /CHECK constraint failed: recommendations_distance_meters_check/,
+    );
+  });
+
+  it.each([0, 4])("表示順に%dを登録できない", async (displayOrder) => {
+    const { batch, category, restaurant } =
+      await seedRecommendationDependencies(db, `user-order-${displayOrder}`);
+
+    await expectDatabaseError(
+      db.insert(schema.recommendations).values({
+        batchId: batch.id,
+        recommendationCategoryId: category.id,
+        restaurantId: restaurant.id,
+        distanceGroup: "near",
+        distanceMeters: 320,
+        displayOrder,
+      }),
+      /CHECK constraint failed: recommendations_display_order_check/,
+    );
+  });
+
+  it("同じカテゴリに同じ距離帯を重複登録できない", async () => {
+    const { batch, category, restaurant } =
+      await seedRecommendationDependencies(db, "user-distance-group");
+    await db.insert(schema.recommendations).values({
+      batchId: batch.id,
+      recommendationCategoryId: category.id,
+      restaurantId: restaurant.id,
+      distanceGroup: "near",
+      distanceMeters: 320,
+      displayOrder: 1,
+    });
+
+    await expectDatabaseError(
+      db.insert(schema.recommendations).values({
+        batchId: batch.id,
+        recommendationCategoryId: category.id,
+        restaurantId: restaurant.id,
+        distanceGroup: "near",
+        distanceMeters: 400,
+        displayOrder: 2,
+      }),
+      /UNIQUE constraint failed: recommendations\.recommendation_category_id, recommendations\.distance_group/,
+    );
   });
 
   it("Google Place IDを重複登録できない", async () => {
-    const { client, db } = await createTestDatabase();
+    const { restaurant } = await seedRecommendationDependencies(
+      db,
+      "user-google-place",
+    );
 
-    try {
-      const { restaurant } = await seedRecommendationDependencies(
-        db,
-        "user-google-place",
-      );
-
-      await expectDatabaseError(
-        db.insert(schema.restaurants).values({
-          googlePlaceId: restaurant.googlePlaceId,
-          name: "重複店舗",
-          address: "東京都千代田区丸の内2-2",
-          latitude: 35.68,
-          longitude: 139.76,
-        }),
-        /UNIQUE constraint failed: restaurants\.google_place_id/,
-      );
-    } finally {
-      client.close();
-    }
+    await expectDatabaseError(
+      db.insert(schema.restaurants).values({
+        googlePlaceId: restaurant.googlePlaceId,
+        name: "重複店舗",
+        address: "東京都千代田区丸の内2-2",
+        latitude: 35.68,
+        longitude: 139.76,
+      }),
+      /UNIQUE constraint failed: restaurants\.google_place_id/,
+    );
   });
 
   it("同じユーザーに設定を重複登録できない", async () => {
-    const { client, db } = await createTestDatabase();
+    await insertTestUser(db, "user-preference");
+    await db.insert(schema.userPreferences).values({
+      userId: "user-preference",
+      campusAddress: "東京都千代田区千代田1-1",
+    });
 
-    try {
-      await insertTestUser(db, "user-preference");
-      await db.insert(schema.userPreferences).values({
+    await expectDatabaseError(
+      db.insert(schema.userPreferences).values({
         userId: "user-preference",
-        campusAddress: "東京都千代田区千代田1-1",
-      });
-
-      await expectDatabaseError(
-        db.insert(schema.userPreferences).values({
-          userId: "user-preference",
-          campusAddress: "東京都新宿区西新宿2-8-1",
-        }),
-        /UNIQUE constraint failed: user_preferences\.user_id/,
-      );
-    } finally {
-      client.close();
-    }
+        campusAddress: "東京都新宿区西新宿2-8-1",
+      }),
+      /UNIQUE constraint failed: user_preferences\.user_id/,
+    );
   });
 
   it("存在しないバッチにカテゴリを登録できない", async () => {
-    const { client, db } = await createTestDatabase();
-
-    try {
-      await expectDatabaseError(
-        db.insert(schema.recommendationCategories).values({
-          batchId: "missing-batch-id",
-          category: "ラーメン",
-          selectionOrder: 1,
-        }),
-        /FOREIGN KEY constraint failed/,
-      );
-    } finally {
-      client.close();
-    }
+    await expectDatabaseError(
+      db.insert(schema.recommendationCategories).values({
+        batchId: "missing-batch-id",
+        category: "ラーメン",
+        selectionOrder: 1,
+      }),
+      /FOREIGN KEY constraint failed/,
+    );
   });
 });
