@@ -1,7 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
+<<<<<<< HEAD
   "id": "326923aa-86bb-436d-b971-66cc8dacb706",
+=======
+  "id": "d1ef6b01-5473-4aaa-b67d-5672361752a6",
+>>>>>>> origin/main
   "prevId": "f68245fe-d041-4da3-8537-65e192257cf2",
   "tables": {
     "account": {
@@ -115,6 +119,7 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+<<<<<<< HEAD
     "recommendation_batches": {
       "name": "recommendation_batches",
       "columns": {
@@ -124,6 +129,17 @@
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
+=======
+    "counter": {
+      "name": "counter",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+>>>>>>> origin/main
         },
         "user_id": {
           "name": "user_id",
@@ -132,6 +148,7 @@
           "notNull": true,
           "autoincrement": false
         },
+<<<<<<< HEAD
         "target_date": {
           "name": "target_date",
           "type": "text",
@@ -163,10 +180,15 @@
         },
         "created_at": {
           "name": "created_at",
+=======
+        "count": {
+          "name": "count",
+>>>>>>> origin/main
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
+<<<<<<< HEAD
           "default": "(unixepoch())"
         }
       },
@@ -174,13 +196,28 @@
         "recommendation_batches_user_id_target_date_unique": {
           "name": "recommendation_batches_user_id_target_date_unique",
           "columns": ["user_id", "target_date"],
+=======
+          "default": 0
+        }
+      },
+      "indexes": {
+        "counter_user_id_unique": {
+          "name": "counter_user_id_unique",
+          "columns": ["user_id"],
+>>>>>>> origin/main
           "isUnique": true
         }
       },
       "foreignKeys": {
+<<<<<<< HEAD
         "recommendation_batches_user_id_user_id_fk": {
           "name": "recommendation_batches_user_id_user_id_fk",
           "tableFrom": "recommendation_batches",
+=======
+        "counter_user_id_user_id_fk": {
+          "name": "counter_user_id_user_id_fk",
+          "tableFrom": "counter",
+>>>>>>> origin/main
           "tableTo": "user",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
@@ -190,6 +227,7 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+<<<<<<< HEAD
       "checkConstraints": {
         "recommendation_batches_status_check": {
           "name": "recommendation_batches_status_check",
@@ -209,11 +247,28 @@
         },
         "batch_id": {
           "name": "batch_id",
+=======
+      "checkConstraints": {}
+    },
+    "genre": {
+      "name": "genre",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+>>>>>>> origin/main
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
+<<<<<<< HEAD
         "category": {
           "name": "category",
           "type": "text",
@@ -226,6 +281,45 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+=======
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "post": {
+      "name": "post",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+>>>>>>> origin/main
           "autoincrement": false
         },
         "created_at": {
@@ -233,6 +327,7 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+<<<<<<< HEAD
           "autoincrement": false,
           "default": "(unixepoch())"
         }
@@ -318,11 +413,35 @@
         },
         "distance_meters": {
           "name": "distance_meters",
+=======
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "recommendation": {
+      "name": "recommendation",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "genre_id": {
+          "name": "genre_id",
+>>>>>>> origin/main
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
+<<<<<<< HEAD
         "display_order": {
           "name": "display_order",
           "type": "integer",
@@ -410,6 +529,8 @@
           "notNull": true,
           "autoincrement": false
         },
+=======
+>>>>>>> origin/main
         "name": {
           "name": "name",
           "type": "text",
@@ -424,33 +545,82 @@
           "notNull": true,
           "autoincrement": false
         },
+<<<<<<< HEAD
         "latitude": {
           "name": "latitude",
           "type": "real",
+=======
+        "distance_meters": {
+          "name": "distance_meters",
+          "type": "integer",
+>>>>>>> origin/main
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
+<<<<<<< HEAD
         "longitude": {
           "name": "longitude",
           "type": "real",
+=======
+        "duration_minutes": {
+          "name": "duration_minutes",
+          "type": "integer",
+>>>>>>> origin/main
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
+<<<<<<< HEAD
+=======
+        "photo_url": {
+          "name": "photo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "price_yen": {
+          "name": "price_yen",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "platform_url": {
+          "name": "platform_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "is_featured": {
+          "name": "is_featured",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+>>>>>>> origin/main
         "created_at": {
           "name": "created_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+<<<<<<< HEAD
           "autoincrement": false,
           "default": "(unixepoch())"
+=======
+          "autoincrement": false
+>>>>>>> origin/main
         },
         "updated_at": {
           "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+<<<<<<< HEAD
           "autoincrement": false,
           "default": "(unixepoch())"
         }
@@ -475,6 +645,26 @@
           "value": "\"restaurants\".\"longitude\" between -180 and 180"
         }
       }
+=======
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "recommendation_genre_id_genre_id_fk": {
+          "name": "recommendation_genre_id_genre_id_fk",
+          "tableFrom": "recommendation",
+          "tableTo": "genre",
+          "columnsFrom": ["genre_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+>>>>>>> origin/main
     },
     "session": {
       "name": "session",
@@ -623,6 +813,7 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+<<<<<<< HEAD
     "user_preferences": {
       "name": "user_preferences",
       "columns": {
@@ -686,6 +877,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+=======
+>>>>>>> origin/main
     "verification": {
       "name": "verification",
       "columns": {
