@@ -117,5 +117,9 @@ PR本文はリポジトリのPRテンプレート（`.github/pull_request_templa
 
 ## 注意事項
 
-- `cog check`（CI）は各コミットメッセージを検証しますが、PRタイトル自体は検証しません。PRタイトルの形式は作成者が責任を持って守ってください
+- CI では Cocogitto の `printf '%s' "$PR_TITLE" | cog verify --file -` を使用して、PR タイトルが Conventional Commits 形式か検証します
+- このチェックは PR の `opened`、`synchronize`、`reopened`、`edited` イベントで実行されます
+- PR タイトルがルールに違反している場合、CI はエラーメッセージを出力して失敗します
+- 許可される型やその他のルールは [`cog.toml`](../cog.toml) で定義されており、コミットメッセージと同じ基準が適用されます
+- CodeRabbit でも PR タイトルをチェックしていますが、これは警告のみで CI の強制チェックとは別です
 - エージェントがPRを作成する場合は、`$create-pr` スキルを使用します
