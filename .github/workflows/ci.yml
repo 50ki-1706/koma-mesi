@@ -36,7 +36,7 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          if ! devbox run -- cog verify "$PR_TITLE"; then
+          if ! printf '%s' "$PR_TITLE" | devbox run -- cog verify --file -; then
             echo "::error::PR title does not follow Conventional Commits format. See docs/pr-rules.md for details. Example: feat: add meal search"
             exit 1
           fi
