@@ -14,7 +14,6 @@ CREATE TABLE `__new_recommendation_batches` (
 INSERT INTO `__new_recommendation_batches`("id", "user_id", "target_date", "status", "started_at", "completed_at", "created_at") SELECT "id", "user_id", "target_date", "status", "started_at", "completed_at", "created_at" FROM `recommendation_batches`;--> statement-breakpoint
 DROP TABLE `recommendation_batches`;--> statement-breakpoint
 ALTER TABLE `__new_recommendation_batches` RENAME TO `recommendation_batches`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
 CREATE UNIQUE INDEX `recommendation_batches_user_id_target_date_unique` ON `recommendation_batches` (`user_id`,`target_date`);--> statement-breakpoint
 CREATE TABLE `__new_recommendation_categories` (
 	`id` text PRIMARY KEY NOT NULL,
@@ -66,4 +65,5 @@ CREATE TABLE `__new_user_preferences` (
 INSERT INTO `__new_user_preferences`("id", "user_id", "campus_address", "created_at", "updated_at") SELECT "id", "user_id", "campus_address", "created_at", "updated_at" FROM `user_preferences`;--> statement-breakpoint
 DROP TABLE `user_preferences`;--> statement-breakpoint
 ALTER TABLE `__new_user_preferences` RENAME TO `user_preferences`;--> statement-breakpoint
-CREATE UNIQUE INDEX `user_preferences_user_id_unique` ON `user_preferences` (`user_id`);
+CREATE UNIQUE INDEX `user_preferences_user_id_unique` ON `user_preferences` (`user_id`);--> statement-breakpoint
+PRAGMA foreign_keys=ON;

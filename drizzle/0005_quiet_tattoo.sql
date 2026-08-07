@@ -18,7 +18,6 @@ CREATE TABLE `__new_recommendations` (
 INSERT INTO `__new_recommendations`("id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "display_order", "created_at") SELECT "id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "display_order", "created_at" FROM `recommendations`;--> statement-breakpoint
 DROP TABLE `recommendations`;--> statement-breakpoint
 ALTER TABLE `__new_recommendations` RENAME TO `recommendations`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
 CREATE UNIQUE INDEX `recommendations_category_id_distance_group_unique` ON `recommendations` (`recommendation_category_id`,`distance_group`);--> statement-breakpoint
 CREATE UNIQUE INDEX `recommendations_category_id_display_order_unique` ON `recommendations` (`recommendation_category_id`,`display_order`);--> statement-breakpoint
 CREATE UNIQUE INDEX `recommendation_categories_id_batch_id_unique` ON `recommendation_categories` (`id`,`batch_id`);--> statement-breakpoint
@@ -38,4 +37,5 @@ CREATE TABLE `__new_recommendation_batches` (
 INSERT INTO `__new_recommendation_batches`("id", "user_id", "target_date", "status", "started_at", "completed_at", "created_at") SELECT "id", "user_id", "target_date", "status", "started_at", "completed_at", "created_at" FROM `recommendation_batches`;--> statement-breakpoint
 DROP TABLE `recommendation_batches`;--> statement-breakpoint
 ALTER TABLE `__new_recommendation_batches` RENAME TO `recommendation_batches`;--> statement-breakpoint
-CREATE UNIQUE INDEX `recommendation_batches_user_id_target_date_unique` ON `recommendation_batches` (`user_id`,`target_date`);
+CREATE UNIQUE INDEX `recommendation_batches_user_id_target_date_unique` ON `recommendation_batches` (`user_id`,`target_date`);--> statement-breakpoint
+PRAGMA foreign_keys=ON;
