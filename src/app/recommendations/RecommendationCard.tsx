@@ -3,10 +3,14 @@
  * タップでボトムシートを開く操作を親から受け取る。
  */
 
-import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
+import {
+  DISTANCE_GROUP_LABELS,
+  WALKING_SPEED_METERS_PER_MINUTE,
+} from "@/constants/recommendations";
+import type { DailyRecommendation } from "@/hooks/useRecommendations";
 
 interface RecommendationCardProps {
-  item: FeaturedRecommendation;
+  item: DailyRecommendation;
   onSelect: () => void;
 }
 
@@ -20,7 +24,9 @@ export function RecommendationCard({
   item,
   onSelect,
 }: RecommendationCardProps) {
-  const { genre, recommendation } = item;
+  const walkingMinutes = Math.ceil(
+    item.distanceMeters / WALKING_SPEED_METERS_PER_MINUTE,
+  );
 
   return (
     <button
@@ -28,28 +34,22 @@ export function RecommendationCard({
       type="button"
       onClick={onSelect}
     >
-      <span className="absolute top-4 left-4 z-10 rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-ink">
-        {genre.name}
-      </span>
-      {/* biome-ignore lint/performance/noImgElement: 外部の飲食店写真URLを表示するため next/image のドメイン許可設定を避ける */}
-      <img
-        className="h-56 w-full object-cover sm:h-64"
-        src={recommendation.photoUrl}
-        alt={recommendation.name}
-        draggable={false}
-      />
+      <div className="relative flex h-56 w-full items-end overflow-hidden bg-[radial-gradient(circle_at_top_right,oklch(0.9_0.08_75),transparent_55%),linear-gradient(145deg,oklch(0.97_0.02_75),oklch(0.91_0.04_75))] p-5 sm:h-64">
+        <span className="absolute top-4 left-4 rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-ink">
+          {item.category}
+        </span>
+        <span className="text-xs font-black tracking-[0.16em] text-brand-hover">
+          {DISTANCE_GROUP_LABELS[item.distanceGroup]}
+        </span>
+      </div>
       <div className="flex flex-1 flex-col gap-2 px-5 py-4">
         <h2 className="text-lg font-black tracking-tight text-ink">
-          {recommendation.name}
+          {item.restaurantName}
         </h2>
-        <p className="text-xs text-ink-muted">{recommendation.address}</p>
+        <p className="text-xs text-ink-muted">{item.restaurantAddress}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-bold text-ink-muted">
           <span className="rounded-full bg-surface-muted/70 px-2.5 py-1">
-            大学から {recommendation.distanceMeters}m ・{" "}
-            {recommendation.durationMinutes}分
-          </span>
-          <span className="rounded-full bg-surface-muted/70 px-2.5 py-1">
-            ¥{recommendation.priceYen.toLocaleString()}
+            大学から {item.distanceMeters}m ・ 徒歩約{walkingMinutes}分
           </span>
         </div>
         <p className="mt-auto text-[0.65rem] font-bold text-brand-hover">

@@ -8,6 +8,7 @@
 import { RecommendationCarousel } from "@/app/recommendations/RecommendationCarousel";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { BottomSheet } from "@/shared/components/BottomSheet/BottomSheet";
+import { buildGoogleMapsPlaceUrl } from "@/shared/googleMaps/placeUrl";
 
 /**
  * おすすめ飲食店の一覧画面を表示する。
@@ -84,17 +85,17 @@ export function RecommendationsScreen() {
 
       <BottomSheet
         isOpen={isBottomSheetOpen}
-        title={currentItem?.recommendation.name}
+        title={currentItem?.restaurantName}
         onClose={closeBottomSheet}
       >
         {currentItem !== null ? (
           <a
             className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-black text-ink shadow-[0_8px_20px_oklch(0.65_0.15_75/0.22)] transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
-            href={currentItem.recommendation.platformUrl}
+            href={buildGoogleMapsPlaceUrl(currentItem.googlePlaceId)}
             rel="noreferrer"
             target="_blank"
           >
-            グルメサイトで見る
+            Google Mapsで見る
           </a>
         ) : null}
       </BottomSheet>

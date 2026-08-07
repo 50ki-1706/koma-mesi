@@ -9,10 +9,10 @@ import type { PointerEvent } from "react";
 import { useRef } from "react";
 import { RecommendationCard } from "@/app/recommendations/RecommendationCard";
 import { SWIPE_THRESHOLD_PX } from "@/constants/recommendations";
-import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
+import type { DailyRecommendation } from "@/hooks/useRecommendations";
 
 interface RecommendationCarouselProps {
-  items: FeaturedRecommendation[];
+  items: DailyRecommendation[];
   currentIndex: number;
   onSwipeNext: () => void;
   onSwipePrevious: () => void;
@@ -110,7 +110,7 @@ export function RecommendationCarousel({
       <div className="mt-4 flex shrink-0 items-center justify-center gap-1.5">
         {items.map((item, index) => (
           <span
-            key={item.genre.id}
+            key={item.recommendationId}
             className={`h-1.5 rounded-full transition-all ${
               index === currentIndex ? "w-6 bg-brand" : "w-1.5 bg-line"
             }`}

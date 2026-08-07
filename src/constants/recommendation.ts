@@ -42,3 +42,6 @@ export const DISTANCE_GROUPS = ["near", "middle", "far"] as const;
 
 /** 大学から店舗までの距離グループ。 */
 export type DistanceGroup = (typeof DISTANCE_GROUPS)[number];
+
+/** 推薦対象日を決定するときに使用するタイムゾーン。 */
+export const RECOMMENDATION_TIME_ZONE = "Asia/Tokyo";
