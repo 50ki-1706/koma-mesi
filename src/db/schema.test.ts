@@ -15,6 +15,8 @@ import * as schema from "./schema";
  */
 async function createTestDatabase() {
   const client = createClient({ url: ":memory:" });
+  await client.execute("PRAGMA foreign_keys = ON");
+
   const db = drizzle(client, { schema });
   await migrate(db, { migrationsFolder: "./drizzle" });
 
