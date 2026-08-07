@@ -10,6 +10,8 @@ import {
   sqliteTable,
   text,
   uniqueIndex,
+  foreignKey,
+  unique,
 } from "drizzle-orm/sqlite-core";
 import {
   DISTANCE_GROUPS,
@@ -173,6 +175,10 @@ export const recommendationCategories = sqliteTable(
       table.batchId,
       table.selectionOrder,
     ),
+    unique("recommendation_categories_id_batch_id_unique").on(
+      table.id,
+      table.batchId,
+    ),
     check(
       "recommendation_categories_category_check",
       sql`${table.category} in (${sql.raw(toSqlStringList(HOTPEPPER_GENRES))})`,
@@ -210,18 +216,8 @@ export const recommendations = sqliteTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    batchId: text("batch_id")
-      .notNull()
-      .references(() => recommendationBatches.id, {
-        onDelete: "cascade",
-        onUpdate: "no action",
-      }),
-    recommendationCategoryId: text("recommendation_category_id")
-      .notNull()
-      .references(() => recommendationCategories.id, {
-        onDelete: "cascade",
-        onUpdate: "no action",
-      }),
+    batchId: text("batch_id").notNull(),
+    recommendationCategoryId: text("recommendation_category_id").notNull(),
     restaurantId: text("restaurant_id")
       .notNull()
       .references(() => restaurants.id, {
@@ -236,6 +232,16 @@ export const recommendations = sqliteTable(
       .default(sql`(unixepoch())`),
   },
   (table) => [
+    foreignKey({
+      columns: [table.recommendationCategoryId, table.batchId],
+      foreignColumns: [
+        recommendationCategories.id,
+        recommendationCategories.batchId,
+      ],
+    })
+      .onDelete("cascade")
+      .onUpdate("no action"),
+
     uniqueIndex("recommendations_category_id_distance_group_unique").on(
       table.recommendationCategoryId,
       table.distanceGroup,
