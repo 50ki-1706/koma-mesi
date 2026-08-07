@@ -106,8 +106,8 @@ Refs #456
 破壊的変更を入れる場合は `!` か `BREAKING CHANGE:` で明示します。可能であれば独立したコミットにし、マイグレーション方法を本文に書いてください。
 
 ```text
-feat(api)!: change error response format
-feat(api): change default pagination size
+feat(api)!: change default pagination size
+
 BREAKING CHANGE: デフォルトの1ページあたり件数を 10 から 20 に変更します。
 ```
 
