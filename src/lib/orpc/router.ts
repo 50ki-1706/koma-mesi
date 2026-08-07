@@ -1,7 +1,7 @@
 import { os } from "@orpc/server";
-import { eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { counters, posts } from "@/db/schema";
+import { counters, genres, posts, recommendations } from "@/db/schema";
 import type { ORPCContext } from "./context";
 
 const base = os.$context<ORPCContext>();
@@ -98,6 +98,28 @@ export const router = {
         })
         .returning();
       return counter;
+    }),
+  },
+
+  recommendation: {
+    // ジャンルごとに isFeatured な店を1件ずつ、表示順(sortOrder)で返す
+    listFeaturedByGenre: protectedProcedure.handler(async ({ context }) => {
+      const rows = await context.db
+        .select({
+          genre: genres,
+          recommendation: recommendations,
+        })
+        .from(genres)
+        .innerJoin(
+          recommendations,
+          and(
+            eq(recommendations.genreId, genres.id),
+            eq(recommendations.isFeatured, true),
+          ),
+        )
+        .orderBy(asc(genres.sortOrder));
+
+      return rows;
     }),
   },
 };

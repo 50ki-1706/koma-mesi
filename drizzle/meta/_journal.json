@@ -8,6 +8,13 @@
       "when": 1786001383750,
       "tag": "0000_light_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786095457756,
+      "tag": "0001_famous_titania",
+      "breakpoints": true
     }
   ]
 }
