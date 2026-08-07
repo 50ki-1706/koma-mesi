@@ -43,7 +43,6 @@ export function RecommendationCarousel({
    */
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>): void => {
     startXRef.current = event.clientX;
-    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   /**
