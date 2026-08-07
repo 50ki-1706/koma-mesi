@@ -1,5 +1,5 @@
 {
-  "name": "next-starter Devbox",
+  "name": "koma-mesi Devbox",
   "image": "docker.io/jetpackio/devbox:latest",
   "remoteUser": "devbox",
   "postCreateCommand": "bash scripts/devcontainer/setup.sh",

@@ -69,9 +69,15 @@ Google OAuth の承認済みリダイレクト URI には、`http://localhost:30
 
 ## 4. データベースのセットアップ
 
+[Devbox シェル](#2-開発環境の準備)内（`devbox shell` 後、VS Code の Devbox 統合ターミナル、または Dev Container 内）で実行します。
+
 ```bash
 pnpm db:push
-# devbox cli経由
+```
+
+Devbox シェルに入らずに実行する場合は `devbox run --` を前置します。
+
+```bash
 devbox run -- pnpm db:push
 ```
 
@@ -82,7 +88,11 @@ devbox run -- pnpm db:push
 ```bash
 pnpm db:generate
 pnpm db:migrate
-# devbox cli経由
+```
+
+または:
+
+```bash
 devbox run -- pnpm db:generate
 devbox run -- pnpm db:migrate
 ```
@@ -91,7 +101,11 @@ devbox run -- pnpm db:migrate
 
 ```bash
 pnpm dev
-# devbox cli経由
+```
+
+または:
+
+```bash
 devbox run -- pnpm dev
 ```
 
@@ -103,7 +117,11 @@ UI コンポーネントを開発する場合は Storybook を起動します。
 
 ```bash
 pnpm storybook
-# devbox cli経由
+```
+
+または:
+
+```bash
 devbox run -- pnpm storybook
 ```
 

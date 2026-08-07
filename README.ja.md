@@ -39,6 +39,6 @@ koma-mesiは、大学の限られた昼休みの時間を、効率的に、そ�
 
 | OS | docs |
 |---|---|
-| macOS | [docs/setup/mac/README.md](./docs/setup/mac/README.ja.md) |
-| Linux | [docs/setup/linux/README.md](./docs/setup/linux/README.ja.md) |
-| Window(wsl2) | [docs/setup/windows/README.md](./docs/setup/windows/README.ja.md) |
+| macOS | [docs/setup/mac/README.ja.md](./docs/setup/mac/README.ja.md) |
+| Linux | [docs/setup/linux/README.ja.md](./docs/setup/linux/README.ja.md) |
+| Window(wsl2) | [docs/setup/windows/README.ja.md](./docs/setup/windows/README.ja.md) |
