@@ -138,6 +138,10 @@ export const recommendationBatches = sqliteTable(
         toSqlStringList(RECOMMENDATION_BATCH_STATUSES),
       )})`,
     ),
+    check(
+      "recommendation_batches_target_date_check",
+      sql`${table.targetDate} glob '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`,
+    ),
   ],
 );
 
