@@ -176,22 +176,37 @@ describe("daily recommendation schema", () => {
     );
   });
 
-  it("カテゴリの選択順を1から3に制限する", async () => {
-    await insertTestUser(db, "user-3");
-    const [batch] = await db
-      .insert(schema.recommendationBatches)
-      .values({ userId: "user-3", targetDate: "2026-08-08" })
-      .returning();
+  it("ゼロ埋めされていない対象日を登録できない", async () => {
+    await insertTestUser(db, "user-invalid-target-date");
 
     await expectDatabaseError(
-      db.insert(schema.recommendationCategories).values({
-        batchId: batch.id,
-        category: "ラーメン",
-        selectionOrder: 4,
+      db.insert(schema.recommendationBatches).values({
+        userId: "user-invalid-target-date",
+        targetDate: "2026-8-8",
       }),
-      /CHECK constraint failed: recommendation_categories_selection_order_check/,
+      /CHECK constraint failed: recommendation_batches_target_date_check/,
     );
   });
+
+  it.each([0, 4])(
+    "カテゴリの選択順に%dを登録できない",
+    async (selectionOrder) => {
+      await insertTestUser(db, "user-3");
+      const [batch] = await db
+        .insert(schema.recommendationBatches)
+        .values({ userId: "user-3", targetDate: "2026-08-08" })
+        .returning();
+
+      await expectDatabaseError(
+        db.insert(schema.recommendationCategories).values({
+          batchId: batch.id,
+          category: "ラーメン",
+          selectionOrder,
+        }),
+        /CHECK constraint failed: recommendation_categories_selection_order_check/,
+      );
+    },
+  );
 
   it("負の距離を登録できない", async () => {
     const { batch, category, restaurant } =
