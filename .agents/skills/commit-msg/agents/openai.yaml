@@ -1,0 +1,3 @@
+display_name: "Commit Message"
+short_description: "Write Conventional Commit messages for this repository"
+default_prompt: "Use $commit-msg to write a commit message for these changes."
