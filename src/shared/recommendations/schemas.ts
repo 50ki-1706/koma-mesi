@@ -69,6 +69,15 @@ export const GenerateRecommendationsOutputSchema = z.object({
 export const GetRecommendationsOutputSchema =
   GenerateRecommendationsOutputSchema.nullable();
 
+/** 日次Cronが返すユーザーごとの処理件数。 */
+export const DailyRecommendationCronOutputSchema = z.object({
+  targetDate: z.iso.date(),
+  totalUsers: z.number().int().nonnegative(),
+  completedUsers: z.number().int().nonnegative(),
+  skippedUsers: z.number().int().nonnegative(),
+  failedUsers: z.number().int().nonnegative(),
+});
+
 /** 推薦生成APIの入力型。 */
 export type GenerateRecommendationsInput = z.infer<
   typeof GenerateRecommendationsInputSchema
@@ -87,4 +96,9 @@ export type GetRecommendationsInput = z.infer<
 /** 保存済み推薦取得APIのレスポンス型。 */
 export type GetRecommendationsOutput = z.infer<
   typeof GetRecommendationsOutputSchema
+>;
+
+/** 日次Cronの実行結果型。 */
+export type DailyRecommendationCronOutput = z.infer<
+  typeof DailyRecommendationCronOutputSchema
 >;
