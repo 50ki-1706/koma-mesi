@@ -45,4 +45,27 @@ describe("OpenAPI specification", () => {
     expect(response?.headers.get("content-type")).toContain("text/html");
     await expect(response?.text()).resolves.toContain("SwaggerUIBundle");
   });
+
+  it("設定したパスでOpenAPI仕様をJSONとして返す", async () => {
+    const { response } = await openAPIHandler.handle(
+      new Request("https://example.com/api/openapi/spec.json"),
+      {
+        prefix: "/api/openapi",
+        context: {
+          db,
+          session: null,
+          generateRecommendations: async () => createDailyRecommendationMock(),
+          getRecommendations: async () => null,
+        },
+      },
+    );
+
+    expect(response?.status).toBe(200);
+    expect(response?.headers.get("content-type")).toContain(
+      "application/json",
+    );
+    await expect(response?.json()).resolves.toMatchObject({
+      info: { title: "koma-mesi API", version: "1.0.0" },
+    });
+  });
 });
