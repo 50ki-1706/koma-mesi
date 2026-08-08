@@ -5,9 +5,14 @@
 
 "use client";
 import Link from "next/link";
+import { useMemo } from "react";
 
 import { RecommendationCarousel } from "@/app/recommendations/RecommendationCarousel";
+import { RecommendationMap } from "@/app/recommendations/RecommendationMap";
+import { LG_BREAKPOINT_QUERY } from "@/constants/breakpoints";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useRecommendations } from "@/hooks/useRecommendations";
+import { useUniversityLocation } from "@/hooks/useUniversityLocation";
 import { BottomSheet } from "@/shared/components/BottomSheet/BottomSheet";
 
 /**
@@ -28,6 +33,21 @@ export function RecommendationsScreen() {
     openBottomSheet,
     closeBottomSheet,
   } = useRecommendations();
+  const universityLocation = useUniversityLocation();
+  const isDesktopViewport = useMediaQuery(LG_BREAKPOINT_QUERY);
+  const destination = useMemo<google.maps.LatLngLiteral | null>(() => {
+    if (currentItem === null) {
+      return null;
+    }
+    return {
+      lat: currentItem.recommendation.latitude,
+      lng: currentItem.recommendation.longitude,
+    };
+  }, [
+    currentItem,
+    currentItem?.recommendation.latitude,
+    currentItem?.recommendation.longitude,
+  ]);
 
   if (isLoading) {
     return (
@@ -63,41 +83,52 @@ export function RecommendationsScreen() {
 
   return (
     <main
-      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 text-ink sm:p-6"
+      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 text-ink sm:p-6 lg:flex-row lg:gap-6"
       aria-label="おすすめの飲食店"
     >
-      <header className="flex shrink-0 items-center justify-between gap-4 pb-3">
-        <div>
-          <p className="text-[0.65rem] font-black tracking-[0.22em] text-brand-hover">
-            RECOMMEND
-          </p>
-          <h1 className="text-xl font-black tracking-tight sm:text-2xl">
-            今日のおすすめ
-          </h1>
-        </div>
-        <Link
-          className="grid size-10 place-items-center rounded-full border border-line bg-surface text-ink-muted shadow-sm transition hover:border-brand hover:bg-brand-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          href="/account"
-          aria-label="アカウントページを開く"
-        >
-          <svg
-            className="size-5 fill-none stroke-current stroke-[1.8]"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+      <div className="flex min-h-0 flex-1 flex-col lg:max-w-md">
+        <header className="flex shrink-0 items-center justify-between gap-4 pb-3">
+          <div>
+            <p className="text-[0.65rem] font-black tracking-[0.22em] text-brand-hover">
+              RECOMMEND
+            </p>
+            <h1 className="text-xl font-black tracking-tight sm:text-2xl">
+              今日のおすすめ
+            </h1>
+          </div>
+          <Link
+            className="grid size-10 place-items-center rounded-full border border-line bg-surface text-ink-muted shadow-sm transition hover:border-brand hover:bg-brand-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            href="/account"
+            aria-label="アカウントページを開く"
           >
-            <circle cx="12" cy="8" r="3.5" />
-            <path d="M5 20c.5-4 2.8-6 7-6s6.5 2 7 6" />
-          </svg>
-        </Link>
-      </header>
+            <svg
+              className="size-5 fill-none stroke-current stroke-[1.8]"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M5 20c.5-4 2.8-6 7-6s6.5 2 7 6" />
+            </svg>
+          </Link>
+        </header>
 
-      <RecommendationCarousel
-        currentIndex={currentIndex}
-        items={items}
-        onSelectCard={openBottomSheet}
-        onSwipeNext={handleSwipeNext}
-        onSwipePrevious={handleSwipePrevious}
-      />
+        <RecommendationCarousel
+          currentIndex={currentIndex}
+          items={items}
+          onSelectCard={openBottomSheet}
+          onSwipeNext={handleSwipeNext}
+          onSwipePrevious={handleSwipePrevious}
+        />
+      </div>
+
+      {destination !== null && isDesktopViewport ? (
+        <div className="min-h-0 flex-1 pt-2">
+          <RecommendationMap
+            origin={universityLocation}
+            destination={destination}
+          />
+        </div>
+      ) : null}
 
       <BottomSheet
         isOpen={isBottomSheetOpen}

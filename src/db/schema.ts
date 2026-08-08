@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -83,6 +83,8 @@ export const recommendations = sqliteTable("recommendation", {
     .references(() => genres.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   address: text("address").notNull(),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
   distanceMeters: integer("distance_meters").notNull(),
   durationMinutes: integer("duration_minutes").notNull(),
   photoUrl: text("photo_url").notNull(),

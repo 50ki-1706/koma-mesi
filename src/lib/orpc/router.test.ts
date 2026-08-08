@@ -46,7 +46,7 @@ async function recreateTables() {
     `CREATE TABLE genre (id integer PRIMARY KEY AUTOINCREMENT, name text NOT NULL, sort_order integer NOT NULL DEFAULT 0, created_at integer NOT NULL)`,
   );
   await db.run(
-    `CREATE TABLE recommendation (id integer PRIMARY KEY AUTOINCREMENT, genre_id integer NOT NULL REFERENCES genre(id) ON DELETE CASCADE, name text NOT NULL, address text NOT NULL, distance_meters integer NOT NULL, duration_minutes integer NOT NULL, photo_url text NOT NULL, price_yen integer NOT NULL, platform_url text NOT NULL, is_featured integer NOT NULL DEFAULT 0, created_at integer NOT NULL, updated_at integer NOT NULL)`,
+    `CREATE TABLE recommendation (id integer PRIMARY KEY AUTOINCREMENT, genre_id integer NOT NULL REFERENCES genre(id) ON DELETE CASCADE, name text NOT NULL, address text NOT NULL, latitude real NOT NULL, longitude real NOT NULL, distance_meters integer NOT NULL, duration_minutes integer NOT NULL, photo_url text NOT NULL, price_yen integer NOT NULL, platform_url text NOT NULL, is_featured integer NOT NULL DEFAULT 0, created_at integer NOT NULL, updated_at integer NOT NULL)`,
   );
 }
 
@@ -91,6 +91,8 @@ async function seedRecommendation({
     genreId,
     name,
     address: "東京都新宿区西新宿1-2-3",
+    latitude: 35.6907,
+    longitude: 139.6995,
     distanceMeters: 500,
     durationMinutes: 7,
     photoUrl: "https://example.com/photo.jpg",
