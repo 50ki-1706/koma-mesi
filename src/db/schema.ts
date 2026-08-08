@@ -226,6 +226,10 @@ export const recommendations = sqliteTable(
       table.recommendationCategoryId,
       table.distanceGroup,
     ),
+    uniqueIndex("recommendations_category_id_restaurant_id_unique").on(
+      table.recommendationCategoryId,
+      table.restaurantId,
+    ),
     check(
       "recommendations_distance_group_check",
       inArray(table.distanceGroup, DISTANCE_GROUPS),

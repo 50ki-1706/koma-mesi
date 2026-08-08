@@ -272,6 +272,29 @@ describe("daily recommendation schema", () => {
     );
   });
 
+  it("同じカテゴリに同じ店舗を重複登録できない", async () => {
+    const { batch, category, restaurant } =
+      await seedRecommendationDependencies(db, "user-restaurant");
+    await db.insert(schema.recommendations).values({
+      batchId: batch.id,
+      recommendationCategoryId: category.id,
+      restaurantId: restaurant.id,
+      distanceGroup: "near",
+      distanceMeters: 320,
+    });
+
+    await expectDatabaseError(
+      db.insert(schema.recommendations).values({
+        batchId: batch.id,
+        recommendationCategoryId: category.id,
+        restaurantId: restaurant.id,
+        distanceGroup: "middle",
+        distanceMeters: 1_200,
+      }),
+      /UNIQUE constraint failed: recommendations\.recommendation_category_id, recommendations\.restaurant_id/,
+    );
+  });
+
   it("Google Place IDを重複登録できない", async () => {
     const { restaurant } = await seedRecommendationDependencies(
       db,
