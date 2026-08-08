@@ -132,10 +132,8 @@ describe("selectDailyRecommendations", () => {
     );
 
     expect(selections).toHaveLength(9);
-    expect(new Set(selections.map((item) => item.googlePlaceId))).toHaveLength(
-      9,
-    );
-    expect(new Set(selections.map((item) => item.category))).toHaveLength(3);
+    expect(new Set(selections.map((item) => item.googlePlaceId)).size).toBe(9);
+    expect(new Set(selections.map((item) => item.category)).size).toBe(3);
     expect(searchedPrimaryTypes).toHaveLength(4);
     expect(searchedPrimaryTypes.every((types) => types.length > 0)).toBe(true);
   });

@@ -29,8 +29,8 @@ describe("createDailyRecommendationMock", () => {
         recommendations.map(
           (recommendation) => recommendation.restaurant.googlePlaceId,
         ),
-      ),
-    ).toHaveLength(9);
+      ).size,
+    ).toBe(9);
   });
 
   it("対象日を省略した場合は日本時間の当日を使用する", () => {
