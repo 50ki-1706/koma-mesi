@@ -3,6 +3,7 @@
  * Vercel Cronの認証と、ユーザー単位の成功・スキップ・失敗を集計する。
  */
 
+import { timingSafeEqual } from "node:crypto";
 import type { GenerateDailyRecommendationsCommand } from "./generate";
 import { RecommendationGenerationError } from "./generate";
 import { formatJapanDate } from "../japanDate";
@@ -28,6 +29,24 @@ export interface RunDailyRecommendationCronDependencies {
 export interface DailyRecommendationCronHandlerDependencies {
   cronSecret: string | undefined;
   run: () => Promise<DailyRecommendationCronOutput>;
+}
+
+/**
+ * Bearer認証値を長さ確認後にタイミングセーフ比較する。
+ *
+ * @param authorization - Authorizationヘッダー値。
+ * @param cronSecret - サーバー側の共有シークレット。
+ * @returns 正しいBearerトークンの場合はtrue。
+ */
+function isAuthorizedCronRequest(
+  authorization: string | null,
+  cronSecret: string,
+): boolean {
+  const expected = Buffer.from(`Bearer ${cronSecret}`);
+  const provided = Buffer.from(authorization ?? "");
+  return (
+    provided.length === expected.length && timingSafeEqual(provided, expected)
+  );
 }
 
 /**
@@ -83,8 +102,10 @@ export function createDailyRecommendationCronHandler(
     if (
       dependencies.cronSecret === undefined ||
       dependencies.cronSecret.length === 0 ||
-      request.headers.get("authorization") !==
-        `Bearer ${dependencies.cronSecret}`
+      !isAuthorizedCronRequest(
+        request.headers.get("authorization"),
+        dependencies.cronSecret,
+      )
     ) {
       return Response.json({ message: "Unauthorized" }, { status: 401 });
     }
