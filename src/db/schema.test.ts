@@ -3,6 +3,7 @@
  * テーブル間の保存経路と主要なDB制約がSQLiteで機能することを検証する。
  */
 import { createClient } from "@libsql/client";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -126,6 +127,53 @@ describe("daily recommendation schema", () => {
   afterEach(() => {
     client?.close();
     client = undefined;
+  });
+
+  it("許可されていない推薦バッチ状態を登録できない", async () => {
+    await insertTestUser(db, "user-invalid-status");
+
+    await expectDatabaseError(
+      db.insert(schema.recommendationBatches).values({
+        userId: "user-invalid-status",
+        targetDate: "2026-08-08",
+        status: sql`${"invalid-status"}`,
+      }),
+      /CHECK constraint failed: recommendation_batches_status_check/,
+    );
+  });
+
+  it("許可されていない推薦カテゴリを登録できない", async () => {
+    await insertTestUser(db, "user-invalid-category");
+    const [batch] = await db
+      .insert(schema.recommendationBatches)
+      .values({ userId: "user-invalid-category", targetDate: "2026-08-08" })
+      .returning();
+
+    await expectDatabaseError(
+      db.insert(schema.recommendationCategories).values({
+        batchId: batch.id,
+        category: sql`${"対象外カテゴリ"}`,
+        selectionOrder: 1,
+      }),
+      /CHECK constraint failed: recommendation_categories_category_check/,
+    );
+  });
+
+  it("許可されていない距離グループを登録できない", async () => {
+    const { batch, category, restaurant } =
+      await seedRecommendationDependencies(db, "user-invalid-distance-group");
+
+    await expectDatabaseError(
+      db.insert(schema.recommendations).values({
+        batchId: batch.id,
+        recommendationCategoryId: category.id,
+        restaurantId: restaurant.id,
+        distanceGroup: sql`${"invalid-distance-group"}`,
+        distanceMeters: 320,
+        displayOrder: 1,
+      }),
+      /CHECK constraint failed: recommendations_distance_group_check/,
+    );
   });
 
   it("推薦バッチから3距離帯の店舗まで保存できる", async () => {
