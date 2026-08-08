@@ -5,6 +5,7 @@
 import { call } from "@orpc/server";
 import { describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
+import { RecommendationGenerationError } from "@/shared/recommendations/generate";
 import { createDailyRecommendationMock } from "@/shared/recommendations/mock";
 import type { ORPCContext } from "./context";
 import { router } from "./router";
@@ -113,6 +114,63 @@ describe("router.recommendation.generate", () => {
         },
       ),
     ).rejects.toThrow();
+  });
+
+  it("生成済みエラーをCONFLICTへ変換する", async () => {
+    const generate = vi.fn(async () => {
+      throw new RecommendationGenerationError(
+        "BATCH_ALREADY_EXISTS",
+        "生成済みです。",
+      );
+    });
+
+    await expect(
+      call(router.recommendation.generate, {}, {
+        context: {
+          db,
+          session: authenticatedSession,
+          generateRecommendations: generate,
+          getRecommendations,
+        },
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+
+  it("入力に起因する生成エラーをBAD_REQUESTへ変換する", async () => {
+    const generate = vi.fn(async () => {
+      throw new RecommendationGenerationError(
+        "CAMPUS_LOCATION_REQUIRED",
+        "大学座標が必要です。",
+      );
+    });
+
+    await expect(
+      call(router.recommendation.generate, {}, {
+        context: {
+          db,
+          session: authenticatedSession,
+          generateRecommendations: generate,
+          getRecommendations,
+        },
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("予期しない生成エラーをINTERNAL_SERVER_ERRORへ変換する", async () => {
+    const generate = vi.fn(async () => {
+      throw new Error("unexpected");
+    });
+
+    await expect(
+      call(router.recommendation.generate, {}, {
+        context: {
+          db,
+          session: authenticatedSession,
+          generateRecommendations: generate,
+          getRecommendations,
+        },
+      }),
+    ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
   });
 });
 
