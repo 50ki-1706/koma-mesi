@@ -10,7 +10,7 @@ CREATE TABLE `__new_recommendations` (
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
 	FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants`(`id`) ON UPDATE no action ON DELETE restrict,
 	FOREIGN KEY (`recommendation_category_id`,`batch_id`) REFERENCES `recommendation_categories`(`id`,`batch_id`) ON UPDATE no action ON DELETE cascade,
-	CONSTRAINT "recommendations_distance_group_check" CHECK("__new_recommendations"."distance_group" in (?, ?, ?)),
+	CONSTRAINT "recommendations_distance_group_check" CHECK("__new_recommendations"."distance_group" in ('near', 'middle', 'far')),
 	CONSTRAINT "recommendations_distance_meters_check" CHECK("__new_recommendations"."distance_meters" >= 0),
 	CONSTRAINT "recommendations_campus_to_restaurant_seconds_check" CHECK("__new_recommendations"."campus_to_restaurant_seconds" >= 0)
 );
