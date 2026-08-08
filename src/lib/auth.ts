@@ -1,16 +1,26 @@
+// Configures Better Auth for local, Vercel Preview, and production environments.
+// Proxies Google OAuth callbacks through the stable production deployment.
+
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { oAuthProxy } from "better-auth/plugins";
 import { db } from "@/db";
 import * as authSchema from "@/db/schema";
+import { resolveAuthCredentials } from "./auth-env";
 
-const googleClientId = process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-
-if (!googleClientId || !googleClientSecret) {
-  throw new Error("Google OAuth credentials are required");
-}
+const {
+  allowedHosts,
+  productionUrl,
+  googleClientId,
+  googleClientSecret,
+  oauthProxySecret,
+} = resolveAuthCredentials();
 
 export const auth = betterAuth({
+  baseURL: {
+    allowedHosts,
+    protocol: "auto",
+  },
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
@@ -29,4 +39,10 @@ export const auth = betterAuth({
       clientSecret: googleClientSecret,
     },
   },
+  plugins: [
+    oAuthProxy({
+      productionURL: productionUrl,
+      secret: oauthProxySecret,
+    }),
+  ],
 });
