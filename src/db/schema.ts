@@ -207,7 +207,6 @@ export const recommendations = sqliteTable(
       }),
     distanceGroup: text("distance_group", { enum: DISTANCE_GROUPS }).notNull(),
     distanceMeters: integer("distance_meters").notNull(),
-    displayOrder: integer("display_order").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -227,10 +226,6 @@ export const recommendations = sqliteTable(
       table.recommendationCategoryId,
       table.distanceGroup,
     ),
-    uniqueIndex("recommendations_category_id_display_order_unique").on(
-      table.recommendationCategoryId,
-      table.displayOrder,
-    ),
     check(
       "recommendations_distance_group_check",
       inArray(table.distanceGroup, DISTANCE_GROUPS).inlineParams(),
@@ -238,10 +233,6 @@ export const recommendations = sqliteTable(
     check(
       "recommendations_distance_meters_check",
       sql`${table.distanceMeters} >= 0`,
-    ),
-    check(
-      "recommendations_display_order_check",
-      sql`${table.displayOrder} between 1 and 3`,
     ),
   ],
 );

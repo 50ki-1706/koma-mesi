@@ -169,7 +169,6 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: sql`${"invalid-distance-group"}`,
         distanceMeters: 320,
-        displayOrder: 1,
       }),
       /CHECK constraint failed: recommendations_distance_group_check/,
     );
@@ -193,7 +192,6 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: 320,
-        displayOrder: 1,
       })
       .returning();
 
@@ -246,26 +244,8 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: -1,
-        displayOrder: 1,
       }),
       /CHECK constraint failed: recommendations_distance_meters_check/,
-    );
-  });
-
-  it.each([0, 4])("表示順に%dを登録できない", async (displayOrder) => {
-    const { batch, category, restaurant } =
-      await seedRecommendationDependencies(db, `user-order-${displayOrder}`);
-
-    await expectDatabaseError(
-      db.insert(schema.recommendations).values({
-        batchId: batch.id,
-        recommendationCategoryId: category.id,
-        restaurantId: restaurant.id,
-        distanceGroup: "near",
-        distanceMeters: 320,
-        displayOrder,
-      }),
-      /CHECK constraint failed: recommendations_display_order_check/,
     );
   });
 
@@ -278,7 +258,6 @@ describe("daily recommendation schema", () => {
       restaurantId: restaurant.id,
       distanceGroup: "near",
       distanceMeters: 320,
-      displayOrder: 1,
     });
 
     await expectDatabaseError(
@@ -288,7 +267,6 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: 400,
-        displayOrder: 2,
       }),
       /UNIQUE constraint failed: recommendations\.recommendation_category_id, recommendations\.distance_group/,
     );
