@@ -184,6 +184,42 @@ describe("generateDailyRecommendations", () => {
     expect(repository.createBatch).not.toHaveBeenCalled();
   });
 
+  it("対象日のバッチが存在する場合は生成済みエラーを返す", async () => {
+    const repository = createRepository();
+    vi.mocked(repository.findBatch).mockResolvedValue({
+      id: "existing-batch",
+      status: "completed",
+    });
+
+    await expect(
+      generateDailyRecommendations(
+        { repository, googlePlaces: createGooglePlaces() },
+        { userId: "user-1", targetDate: "2026-08-09" },
+      ),
+    ).rejects.toMatchObject({
+      code: "BATCH_ALREADY_EXISTS",
+    } satisfies Partial<RecommendationGenerationError>);
+    expect(repository.createBatch).not.toHaveBeenCalled();
+  });
+
+  it("対象日を省略すると日本時間の当日でバッチを作成する", async () => {
+    const repository = createRepository();
+
+    await generateDailyRecommendations(
+      {
+        repository,
+        googlePlaces: createGooglePlaces(),
+        now: () => new Date("2026-08-08T16:00:00Z"),
+      },
+      { userId: "user-1" },
+    );
+
+    expect(repository.createBatch).toHaveBeenCalledWith(
+      "user-1",
+      "2026-08-09",
+    );
+  });
+
   it("バッチ作成が競合したら生成済みエラーに変換する", async () => {
     const repository = createRepository();
     vi.mocked(repository.createBatch).mockResolvedValue(null);
