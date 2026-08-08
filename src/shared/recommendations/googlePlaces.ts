@@ -118,6 +118,20 @@ export class GooglePlacesError extends Error {
 }
 
 /**
+ * サーバー専用のGoogle Maps APIキーを環境変数から取得する。
+ *
+ * @returns 空文字ではないAPIキー。
+ * @throws {GooglePlacesError} APIキーが未設定または空の場合。
+ */
+export function requireGoogleMapsApiKey(): string {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (apiKey === undefined || apiKey.trim().length === 0) {
+    throw new GooglePlacesError("GOOGLE_MAPS_API_KEYが設定されていません。");
+  }
+  return apiKey;
+}
+
+/**
  * GoogleのDuration文字列を保存用の秒数へ変換する。
  *
  * @param duration - `123s`形式のDuration。

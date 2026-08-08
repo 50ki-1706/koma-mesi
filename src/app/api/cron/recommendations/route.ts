@@ -9,15 +9,16 @@ import {
   runDailyRecommendationCron,
 } from "@/shared/recommendations/cron";
 import { generateDailyRecommendations } from "@/shared/recommendations/generate";
-import { GooglePlacesClient } from "@/shared/recommendations/googlePlaces";
+import {
+  GooglePlacesClient,
+  requireGoogleMapsApiKey,
+} from "@/shared/recommendations/googlePlaces";
 import { DrizzleRecommendationRepository } from "@/shared/recommendations/repository";
 
 /** 座標登録済みユーザー全員の日次推薦を生成する。 */
 async function runCron() {
   const repository = new DrizzleRecommendationRepository(db);
-  const googlePlaces = new GooglePlacesClient(
-    process.env.GOOGLE_MAPS_API_KEY ?? "",
-  );
+  const googlePlaces = new GooglePlacesClient(requireGoogleMapsApiKey());
 
   return runDailyRecommendationCron({
     repository,

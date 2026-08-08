@@ -7,7 +7,10 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import type { DailyRecommendationGenerator } from "@/shared/recommendations/cron";
 import { generateDailyRecommendations } from "@/shared/recommendations/generate";
-import { GooglePlacesClient } from "@/shared/recommendations/googlePlaces";
+import {
+  GooglePlacesClient,
+  requireGoogleMapsApiKey,
+} from "@/shared/recommendations/googlePlaces";
 import {
   type GetDailyRecommendationsCommand,
   getDailyRecommendations,
@@ -35,9 +38,7 @@ export async function createORPCContext() {
 
   const repository = new DrizzleRecommendationRepository(db);
   const generateRecommendations: RecommendationGenerator = (command) => {
-    const googlePlaces = new GooglePlacesClient(
-      process.env.GOOGLE_MAPS_API_KEY ?? "",
-    );
+    const googlePlaces = new GooglePlacesClient(requireGoogleMapsApiKey());
     return generateDailyRecommendations(
       {
         repository,
