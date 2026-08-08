@@ -50,6 +50,13 @@
       "when": 1786151780185,
       "tag": "0006_woozy_thaddeus_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786154374446,
+      "tag": "0007_free_zaran",
+      "breakpoints": true
     }
   ]
 }

@@ -2,32 +2,22 @@
   認証情報と日次の飲食店推薦結果を永続化するDBスキーマを定義する。
   SQLite上の制約により、推薦バッチ・カテゴリ・店舗間の整合性を保証する。
  */
-import { sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import {
   check,
+  foreignKey,
   integer,
   real,
   sqliteTable,
   text,
-  uniqueIndex,
-  foreignKey,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import {
   DISTANCE_GROUPS,
   HOTPEPPER_GENRES,
   RECOMMENDATION_BATCH_STATUSES,
 } from "@/constants/recommendationSchema";
-
-/**
-  CHECK制約で使う文字列値を、エスケープ済みのSQLリストへ変換する。
-
-  @param values - SQL文字列リテラルへ変換する値。
-  @returns カンマ区切りのSQL文字列リテラル。
- */
-function toSqlStringList(values: readonly string[]): string {
-  return values.map((value) => `'${value.replaceAll("'", "''")}'`).join(", ");
-}
 
 /** Better Authが管理するユーザーテーブル。 */
 export const user = sqliteTable("user", {
@@ -138,9 +128,7 @@ export const recommendationBatches = sqliteTable(
     ),
     check(
       "recommendation_batches_status_check",
-      sql`${table.status} in (${sql.raw(
-        toSqlStringList(RECOMMENDATION_BATCH_STATUSES),
-      )})`,
+      inArray(table.status, RECOMMENDATION_BATCH_STATUSES).inlineParams(),
     ),
     check(
       "recommendation_batches_target_date_check",
@@ -183,7 +171,7 @@ export const recommendationCategories = sqliteTable(
     ),
     check(
       "recommendation_categories_category_check",
-      sql`${table.category} in (${sql.raw(toSqlStringList(HOTPEPPER_GENRES))})`,
+      inArray(table.category, HOTPEPPER_GENRES).inlineParams(),
     ),
     check(
       "recommendation_categories_selection_order_check",
@@ -254,9 +242,7 @@ export const recommendations = sqliteTable(
     ),
     check(
       "recommendations_distance_group_check",
-      sql`${table.distanceGroup} in (${sql.raw(
-        toSqlStringList(DISTANCE_GROUPS),
-      )})`,
+      inArray(table.distanceGroup, DISTANCE_GROUPS).inlineParams(),
     ),
     check(
       "recommendations_distance_meters_check",
