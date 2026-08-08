@@ -14,9 +14,15 @@ importers:
       '@orpc/client':
         specifier: ^1.14.2
         version: 1.14.2
+      '@orpc/openapi':
+        specifier: 1.14.2
+        version: 1.14.2(ws@8.21.2)
       '@orpc/server':
         specifier: ^1.14.2
         version: 1.14.2(ws@8.21.2)
+      '@orpc/zod':
+        specifier: 1.14.2
+        version: 1.14.2(@orpc/contract@1.14.2)(@orpc/server@1.14.2(ws@8.21.2))(ws@8.21.2)(zod@4.4.3)
       '@vis.gl/react-google-maps':
         specifier: ^1.9.0
         version: 1.9.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -1123,6 +1129,15 @@ packages:
   '@orpc/interop@1.14.2':
     resolution: {integrity: sha512-FkrXlR0vmhx5D0t5WA6YN7XyC1WwjGGmkaaShVUGdnFu6m0bl4v3vZZWIMcPy5fG/6wF7KCTEGx0B6+kMmLWiQ==}
 
+  '@orpc/json-schema@1.14.2':
+    resolution: {integrity: sha512-CpK8+evqU1j685f5M2UUO+tsm0HFKeykTQNTtq0WGMyFy7PPVOGYbJxZSorLJmWDfEw8ImPP2bj3wXEEOJsgag==}
+
+  '@orpc/openapi-client@1.14.2':
+    resolution: {integrity: sha512-KIXSVuGYh3JvO0lxUUztuMkEj6FV5C96QivR+H/HvqfFidC3hEH0nqi0vEWmUzlbzH3jbCaJV8KKV41HKnUNYw==}
+
+  '@orpc/openapi@1.14.2':
+    resolution: {integrity: sha512-Xuy8auE1KubDjZGc5mvntSfaHy03p0tjDfEkx7k/S4SSJi0o4Rn+HYgCltgYznKwuyMnljl/0gShf99bo77lFg==}
+
   '@orpc/server@1.14.2':
     resolution: {integrity: sha512-+MkYqqI1CmR/eWsktpAxN4+Dd1rbDGO3xh9ZQae/V4zID5uz7smUnsIJL97GRDIZkwRUYlC8TDLLPAkxij22Iw==}
     peerDependencies:
@@ -1164,6 +1179,13 @@ packages:
 
   '@orpc/standard-server@1.14.2':
     resolution: {integrity: sha512-XHySJICwDsJf211gcxtJBpzB1ldZrSHDW2mqbBQg+I2AewvTqWiqeGZV+SPvmq87q4IfBzncSuwMrRKplUJhsw==}
+
+  '@orpc/zod@1.14.2':
+    resolution: {integrity: sha512-47FBoaAz5GfHSdtD/ZNmTjorLD9SiD+I008UH2+DKehC4HMh8V1SbsMWCanUOkh1IFPZ1kzKaOOT+g0OAIOUWA==}
+    peerDependencies:
+      '@orpc/contract': 1.14.2
+      '@orpc/server': 1.14.2
+      zod: '>=3.25.0'
 
   '@oxc-parser/binding-android-arm-eabi@0.127.0':
     resolution: {integrity: sha512-0LC7ye4hvqbIKxAzThzvswgHLFu2AURKzYLeSVvLdu2TBOYWQDmHnTqPLeA597BcUCxiLqLsS4CJ5uoI5WYWCQ==}
@@ -2275,6 +2297,10 @@ packages:
     resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
     engines: {node: '>=6'}
 
+  escape-string-regexp@5.0.0:
+    resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
+    engines: {node: '>=12'}
+
   esprima@4.0.1:
     resolution: {integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==}
     engines: {node: '>=4'}
@@ -2380,6 +2406,9 @@ packages:
     resolution: {integrity: sha512-/sM3dO2FOzXjKQhJuo0Q173wf2KOo8t4I8vHy6lF9poUp7bKT0/NHE8fPX23PwfhnykfqnC2xRxOnVw5XuGIaA==}
     engines: {node: '>=6'}
     hasBin: true
+
+  json-schema-typed@8.0.2:
+    resolution: {integrity: sha512-fQhoXdcvc3V28x7C7BMs4P5+kNlgUURe2jmUT1T//oBRMDrqy1QPelJimwZGo7Hg9VPV3EQV5Bnq4hbFy2vetA==}
 
   json5@2.2.3:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
@@ -3028,6 +3057,9 @@ packages:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
     engines: {node: '>=8'}
     hasBin: true
+
+  wildcard-match@5.1.4:
+    resolution: {integrity: sha512-wldeCaczs8XXq7hj+5d/F38JE2r7EXgb6WQDM84RVwxy81T/sxB5e9+uZLK9Q9oNz1mlvjut+QtvgaOQFPVq/g==}
 
   ws@8.20.0:
     resolution: {integrity: sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA==}
@@ -3816,6 +3848,46 @@ snapshots:
 
   '@orpc/interop@1.14.2': {}
 
+  '@orpc/json-schema@1.14.2(ws@8.21.2)':
+    dependencies:
+      '@orpc/contract': 1.14.2
+      '@orpc/interop': 1.14.2
+      '@orpc/openapi': 1.14.2(ws@8.21.2)
+      '@orpc/server': 1.14.2(ws@8.21.2)
+      '@orpc/shared': 1.14.2
+      json-schema-typed: 8.0.2
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
+      - fastify
+      - ws
+
+  '@orpc/openapi-client@1.14.2':
+    dependencies:
+      '@orpc/client': 1.14.2
+      '@orpc/contract': 1.14.2
+      '@orpc/shared': 1.14.2
+      '@orpc/standard-server': 1.14.2
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+
+  '@orpc/openapi@1.14.2(ws@8.21.2)':
+    dependencies:
+      '@orpc/client': 1.14.2
+      '@orpc/contract': 1.14.2
+      '@orpc/interop': 1.14.2
+      '@orpc/openapi-client': 1.14.2
+      '@orpc/server': 1.14.2(ws@8.21.2)
+      '@orpc/shared': 1.14.2
+      '@orpc/standard-server': 1.14.2
+      json-schema-typed: 8.0.2
+      rou3: 0.7.12
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
+      - fastify
+      - ws
+
   '@orpc/server@1.14.2(ws@8.21.2)':
     dependencies:
       '@orpc/client': 1.14.2
@@ -3884,6 +3956,22 @@ snapshots:
       '@orpc/shared': 1.14.2
     transitivePeerDependencies:
       - '@opentelemetry/api'
+
+  '@orpc/zod@1.14.2(@orpc/contract@1.14.2)(@orpc/server@1.14.2(ws@8.21.2))(ws@8.21.2)(zod@4.4.3)':
+    dependencies:
+      '@orpc/contract': 1.14.2
+      '@orpc/json-schema': 1.14.2(ws@8.21.2)
+      '@orpc/openapi': 1.14.2(ws@8.21.2)
+      '@orpc/server': 1.14.2(ws@8.21.2)
+      '@orpc/shared': 1.14.2
+      escape-string-regexp: 5.0.0
+      wildcard-match: 5.1.4
+      zod: 4.4.3
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - crossws
+      - fastify
+      - ws
 
   '@oxc-parser/binding-android-arm-eabi@0.127.0':
     optional: true
@@ -4710,6 +4798,8 @@ snapshots:
 
   escalade@3.2.0: {}
 
+  escape-string-regexp@5.0.0: {}
+
   esprima@4.0.1: {}
 
   estree-walker@2.0.2: {}
@@ -4784,6 +4874,8 @@ snapshots:
   js-tokens@4.0.0: {}
 
   jsesc@3.1.0: {}
+
+  json-schema-typed@8.0.2: {}
 
   json5@2.2.3: {}
 
@@ -5415,6 +5507,8 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  wildcard-match@5.1.4: {}
 
   ws@8.20.0: {}
 
