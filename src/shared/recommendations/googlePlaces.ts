@@ -186,6 +186,27 @@ function parsePriceRange(
   };
 }
 
+/**
+ * Google Placesレスポンスを検証し、外部API用のエラーへ統一する。
+ *
+ * @param schema - 期待するレスポンスのZod Schema。
+ * @param value - JSONとして受信した値。
+ * @param operationName - エラーメッセージに使用する操作名。
+ * @returns Schemaで検証済みのレスポンス。
+ * @throws {GooglePlacesError} レスポンス形式が不正な場合。
+ */
+function parseGoogleResponse<T>(
+  schema: z.ZodType<T>,
+  value: unknown,
+  operationName: string,
+): T {
+  const parsed = schema.safeParse(value);
+  if (!parsed.success) {
+    throw new GooglePlacesError(`${operationName}の応答形式が不正です。`);
+  }
+  return parsed.data;
+}
+
 /** Google Places API（New）のHTTPクライアント。 */
 export class GooglePlacesClient implements GooglePlacesGateway {
   private readonly apiKey: string;
@@ -252,8 +273,10 @@ export class GooglePlacesClient implements GooglePlacesGateway {
       );
     }
 
-    const parsed = GoogleNearbySearchResponseSchema.parse(
+    const parsed = parseGoogleResponse(
+      GoogleNearbySearchResponseSchema,
       (await response.json()) as unknown,
+      "Nearby Search",
     );
 
     return parsed.places.flatMap((place, index) => {
@@ -297,8 +320,10 @@ export class GooglePlacesClient implements GooglePlacesGateway {
       );
     }
 
-    const place = GooglePlaceDetailsResponseSchema.parse(
+    const place = parseGoogleResponse(
+      GooglePlaceDetailsResponseSchema,
       (await response.json()) as unknown,
+      "Place Details",
     );
     return {
       googlePlaceId: place.id,

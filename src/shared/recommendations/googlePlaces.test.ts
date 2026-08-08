@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { GooglePlacesClient } from "./googlePlaces";
+import { GooglePlacesClient, GooglePlacesError } from "./googlePlaces";
 
 describe("GooglePlacesClient", () => {
   it("Nearby Searchから徒歩経路候補を取得する", async () => {
@@ -81,7 +81,7 @@ describe("GooglePlacesClient", () => {
     });
   });
 
-  it("想定外のGoogleレスポンスをZodで拒否する", async () => {
+  it("想定外のGoogleレスポンスをGoogle Placesエラーとして拒否する", async () => {
     const fetchMock = vi
       .fn<typeof fetch>()
       .mockResolvedValue(Response.json({ places: [{ place_id: "legacy" }] }));
@@ -91,6 +91,6 @@ describe("GooglePlacesClient", () => {
       client.searchNearby({ latitude: 35.681236, longitude: 139.767125 }, [
         "ramen_restaurant",
       ]),
-    ).rejects.toThrow();
+    ).rejects.toThrow(GooglePlacesError);
   });
 });
