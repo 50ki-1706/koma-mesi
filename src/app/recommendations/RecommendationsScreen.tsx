@@ -9,6 +9,8 @@ import { useMemo } from "react";
 
 import { RecommendationCarousel } from "@/app/recommendations/RecommendationCarousel";
 import { RecommendationMap } from "@/app/recommendations/RecommendationMap";
+import { LG_BREAKPOINT_QUERY } from "@/constants/breakpoints";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useUniversityLocation } from "@/hooks/useUniversityLocation";
 import { BottomSheet } from "@/shared/components/BottomSheet/BottomSheet";
@@ -32,6 +34,7 @@ export function RecommendationsScreen() {
     closeBottomSheet,
   } = useRecommendations();
   const universityLocation = useUniversityLocation();
+  const isDesktopViewport = useMediaQuery(LG_BREAKPOINT_QUERY);
   const destination = useMemo<google.maps.LatLngLiteral | null>(() => {
     if (currentItem === null) {
       return null;
@@ -118,8 +121,8 @@ export function RecommendationsScreen() {
         />
       </div>
 
-      {destination !== null ? (
-        <div className="hidden min-h-0 flex-1 pt-2 lg:block">
+      {destination !== null && isDesktopViewport ? (
+        <div className="min-h-0 flex-1 pt-2">
           <RecommendationMap
             origin={universityLocation}
             destination={destination}
