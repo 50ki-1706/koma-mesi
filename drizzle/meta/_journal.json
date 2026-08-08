@@ -99,6 +99,13 @@
       "when": 1786160071436,
       "tag": "0013_free_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1786162090435,
+      "tag": "0014_special_lockjaw",
+      "breakpoints": true
     }
   ]
 }

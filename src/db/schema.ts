@@ -282,6 +282,7 @@ export const recommendations = sqliteTable(
       }),
     distanceGroup: text("distance_group", { enum: DISTANCE_GROUPS }).notNull(),
     distanceMeters: integer("distance_meters").notNull(),
+    durationMinutes: integer("duration_minutes").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -312,6 +313,10 @@ export const recommendations = sqliteTable(
     check(
       "recommendations_distance_meters_check",
       sql`${table.distanceMeters} >= 0`,
+    ),
+    check(
+      "recommendations_duration_minutes_check",
+      sql`${table.durationMinutes} >= 0`,
     ),
   ],
 );
