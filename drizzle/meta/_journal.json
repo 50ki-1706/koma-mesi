@@ -19,8 +19,99 @@
     {
       "idx": 2,
       "version": "6",
-      "when": 1786124878078,
-      "tag": "0002_violet_gateway",
+      "when": 1786130489370,
+      "tag": "0002_black_sunfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786131373248,
+      "tag": "0003_nervous_sebastian_shaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786138488893,
+      "tag": "0004_tranquil_titania",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786140380614,
+      "tag": "0005_quiet_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786151780185,
+      "tag": "0006_woozy_thaddeus_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786154374446,
+      "tag": "0007_free_zaran",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786157800854,
+      "tag": "0008_pretty_johnny_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786157895519,
+      "tag": "0009_perpetual_red_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786158147364,
+      "tag": "0010_useful_wind_dancer",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1786158367320,
+      "tag": "0011_handy_rafael_vega",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1786158976460,
+      "tag": "0012_previous_sinister_six",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1786160071436,
+      "tag": "0013_free_thunderbolts",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1786162090435,
+      "tag": "0014_special_lockjaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1786164983145,
+      "tag": "0015_foamy_starhawk",
       "breakpoints": true
     }
   ]
