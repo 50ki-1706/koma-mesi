@@ -5,8 +5,8 @@
 import { createClient } from "@libsql/client";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
-import { migrate } from "drizzle-orm/libsql/migrator";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { migrateWithEmptyStatementsFiltered } from "@/db/migrate";
 import * as schema from "./schema";
 
 /**
@@ -19,7 +19,9 @@ async function createTestDatabase() {
   await client.execute("PRAGMA foreign_keys = ON");
 
   const db = drizzle(client, { schema });
-  await migrate(db, { migrationsFolder: "./drizzle" });
+  await migrateWithEmptyStatementsFiltered(db, {
+    migrationsFolder: "./drizzle",
+  });
 
   return { client, db };
 }
@@ -282,11 +284,22 @@ describe("daily recommendation schema", () => {
       campusToRestaurantSeconds: 360,
     });
 
+    const [secondRestaurant] = await db
+      .insert(schema.restaurants)
+      .values({
+        googlePlaceId: `${restaurant.googlePlaceId}-2`,
+        name: "テスト食堂2",
+        address: "東京都千代田区丸の内1-2",
+        latitude: 35.682,
+        longitude: 139.768,
+      })
+      .returning();
+
     await expectDatabaseError(
       db.insert(schema.recommendations).values({
         batchId: batch.id,
         recommendationCategoryId: category.id,
-        restaurantId: restaurant.id,
+        restaurantId: secondRestaurant.id,
         distanceGroup: "near",
         distanceMeters: 400,
         campusToRestaurantSeconds: 420,

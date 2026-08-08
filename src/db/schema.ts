@@ -2,7 +2,7 @@
   認証情報と日次の飲食店推薦結果を永続化するDBスキーマを定義する。
   SQLite上の制約により、推薦バッチ・カテゴリ・店舗間の整合性を保証する。
  */
-import { inArray, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   check,
   foreignKey,
@@ -140,7 +140,7 @@ export const recommendationBatches = sqliteTable(
     ),
     check(
       "recommendation_batches_status_check",
-      inArray(table.status, RECOMMENDATION_BATCH_STATUSES),
+      sql`${table.status} IN ('pending', 'processing', 'completed', 'failed')`,
     ),
     check(
       "recommendation_batches_target_date_check",
@@ -178,7 +178,7 @@ export const recommendationCategories = sqliteTable(
     ),
     check(
       "recommendation_categories_category_check",
-      inArray(table.category, HOTPEPPER_GENRES),
+      sql`${table.category} IN ('居酒屋', 'ダイニングバー・バル', '創作料理', '和食', '洋食', 'イタリアン・フレンチ', '中華', '焼肉・ホルモン', '韓国料理', 'アジア・エスニック料理', '各国料理', 'カラオケ・パーティ', 'バー・カクテル', 'ラーメン', 'お好み焼き・もんじゃ', 'カフェ・スイーツ', 'その他グルメ')`,
     ),
   ],
 );
@@ -310,7 +310,7 @@ export const recommendations = sqliteTable(
     ),
     check(
       "recommendations_distance_group_check",
-      inArray(table.distanceGroup, DISTANCE_GROUPS),
+      sql`${table.distanceGroup} IN ('near', 'middle', 'far')`,
     ),
     check(
       "recommendations_distance_meters_check",

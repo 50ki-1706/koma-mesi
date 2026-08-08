@@ -105,12 +105,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -177,10 +173,7 @@
       "indexes": {
         "recommendation_batches_user_id_target_date_unique": {
           "name": "recommendation_batches_user_id_target_date_unique",
-          "columns": [
-            "user_id",
-            "target_date"
-          ],
+          "columns": ["user_id", "target_date"],
           "isUnique": true
         }
       },
@@ -189,12 +182,8 @@
           "name": "recommendation_batches_user_id_user_id_fk",
           "tableFrom": "recommendation_batches",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -248,18 +237,12 @@
       "indexes": {
         "recommendation_categories_batch_id_category_unique": {
           "name": "recommendation_categories_batch_id_category_unique",
-          "columns": [
-            "batch_id",
-            "category"
-          ],
+          "columns": ["batch_id", "category"],
           "isUnique": true
         },
         "recommendation_categories_id_batch_id_unique": {
           "name": "recommendation_categories_id_batch_id_unique",
-          "columns": [
-            "id",
-            "batch_id"
-          ],
+          "columns": ["id", "batch_id"],
           "isUnique": true
         }
       },
@@ -268,12 +251,8 @@
           "name": "recommendation_categories_batch_id_recommendation_batches_id_fk",
           "tableFrom": "recommendation_categories",
           "tableTo": "recommendation_batches",
-          "columnsFrom": [
-            "batch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -344,18 +323,12 @@
       "indexes": {
         "recommendations_category_id_distance_group_unique": {
           "name": "recommendations_category_id_distance_group_unique",
-          "columns": [
-            "recommendation_category_id",
-            "distance_group"
-          ],
+          "columns": ["recommendation_category_id", "distance_group"],
           "isUnique": true
         },
         "recommendations_category_id_restaurant_id_unique": {
           "name": "recommendations_category_id_restaurant_id_unique",
-          "columns": [
-            "recommendation_category_id",
-            "restaurant_id"
-          ],
+          "columns": ["recommendation_category_id", "restaurant_id"],
           "isUnique": true
         }
       },
@@ -364,12 +337,8 @@
           "name": "recommendations_restaurant_id_restaurants_id_fk",
           "tableFrom": "recommendations",
           "tableTo": "restaurants",
-          "columnsFrom": [
-            "restaurant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["restaurant_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -377,14 +346,8 @@
           "name": "recommendations_recommendation_category_id_batch_id_recommendation_categories_id_batch_id_fk",
           "tableFrom": "recommendations",
           "tableTo": "recommendation_categories",
-          "columnsFrom": [
-            "recommendation_category_id",
-            "batch_id"
-          ],
-          "columnsTo": [
-            "id",
-            "batch_id"
-          ],
+          "columnsFrom": ["recommendation_category_id", "batch_id"],
+          "columnsTo": ["id", "batch_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -467,9 +430,7 @@
       "indexes": {
         "restaurants_google_place_id_unique": {
           "name": "restaurants_google_place_id_unique",
-          "columns": [
-            "google_place_id"
-          ],
+          "columns": ["google_place_id"],
           "isUnique": true
         }
       },
@@ -541,9 +502,7 @@
       "indexes": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": true
         }
       },
@@ -552,12 +511,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -622,9 +577,7 @@
       "indexes": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -691,9 +644,7 @@
       "indexes": {
         "user_preferences_user_id_unique": {
           "name": "user_preferences_user_id_unique",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
           "isUnique": true
         }
       },
@@ -702,12 +653,8 @@
           "name": "user_preferences_user_id_user_id_fk",
           "tableFrom": "user_preferences",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
