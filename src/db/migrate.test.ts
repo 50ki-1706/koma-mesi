@@ -5,6 +5,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createClient } from "@libsql/client";
 import { describe, expect, test } from "vitest";
 import { runMigrations } from "./migrate";
 
@@ -63,19 +64,29 @@ describe("runMigrations", () => {
   });
 
   test("detects foreign key violations by creating orphaned references", async () => {
-    const databaseUrl = ":memory:";
     const migrationsFolder = await createTempMigrationsFolder(
-      "0000_orphaned",
-      [
-        "CREATE TABLE parent (id TEXT PRIMARY KEY);",
-        "--> statement-breakpoint",
-        "CREATE TABLE child (id TEXT PRIMARY KEY, parent_id TEXT REFERENCES parent(id));",
-        "--> statement-breakpoint",
-        "INSERT INTO child VALUES ('child-1', 'missing-parent');",
-      ].join("\n"),
+      "0000_noop",
+      "SELECT 1;",
     );
 
     try {
+      const databaseUrl = `file:${join(migrationsFolder, "test.db")}`;
+
+      // Seed orphan row with foreign_keys OFF so it bypasses immediate enforcement
+      const seedClient = createClient({ url: databaseUrl });
+      try {
+        await seedClient.execute("PRAGMA foreign_keys = OFF");
+        await seedClient.execute("CREATE TABLE parent (id TEXT PRIMARY KEY)");
+        await seedClient.execute(
+          "CREATE TABLE child (id TEXT PRIMARY KEY, parent_id TEXT REFERENCES parent(id))",
+        );
+        await seedClient.execute(
+          "INSERT INTO child VALUES ('child-1', 'missing-parent')",
+        );
+      } finally {
+        seedClient.close();
+      }
+
       await expect(
         runMigrations({ databaseUrl, migrationsFolder }),
       ).rejects.toThrow(/Foreign key violations found after migration/);
