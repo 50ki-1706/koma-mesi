@@ -3,7 +3,7 @@
  * 対象日を省略した場合は、推薦生成処理と同じ日本時間の当日を使用する。
  */
 
-import { formatJapanDate } from "./generate";
+import { formatJapanDate } from "../japanDate";
 import type { RecommendationReadRepository } from "./repository";
 import type { GetRecommendationsOutput } from "./schemas";
 

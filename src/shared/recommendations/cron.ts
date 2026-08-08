@@ -4,7 +4,8 @@
  */
 
 import type { GenerateDailyRecommendationsCommand } from "./generate";
-import { formatJapanDate, RecommendationGenerationError } from "./generate";
+import { RecommendationGenerationError } from "./generate";
+import { formatJapanDate } from "../japanDate";
 import type { RecommendationCronRepository } from "./repository";
 import type {
   DailyRecommendationCronOutput,

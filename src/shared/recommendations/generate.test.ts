@@ -5,7 +5,8 @@
 
 import { describe, expect, it, vi } from "vitest";
 import type { RecommendationGenerationError } from "./generate";
-import { formatJapanDate, generateDailyRecommendations } from "./generate";
+import { formatJapanDate } from "../japanDate";
+import { generateDailyRecommendations } from "./generate";
 import type { GooglePlaceDetails, GooglePlacesGateway } from "./googlePlaces";
 import type {
   CompleteRecommendationBatchInput,
