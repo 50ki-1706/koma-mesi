@@ -6,21 +6,43 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { orpc } from "@/lib/orpc/client";
 
-/** ジャンルごとのfeaturedな店1件を表す。 */
-export type FeaturedRecommendation = Awaited<
-  ReturnType<typeof orpc.recommendation.listFeaturedByGenre>
->[number];
+/**
+ * ジャンルごとのおすすめレストラン情報
+ */
+export interface FeaturedRecommendation {
+  genre: {
+    id: string;
+    name: string;
+    sortOrder: number;
+    createdAt: Date;
+  };
+  recommendation: {
+    id: string;
+    genreId: string;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    distanceMeters: number;
+    durationMinutes: number;
+    photoUrl: string;
+    priceYen: number;
+    platformUrl: string;
+    isFeatured: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
 
 // TODO: 表示確認用の一時的なデモデータ。DBにデータを投入したら削除し、
 // 下のuseEffect内をorpc.recommendation.listFeaturedByGenre()の呼び出しに戻すこと。
 const DEMO_ITEMS: FeaturedRecommendation[] = [
   {
-    genre: { id: 1, name: "ラーメン", sortOrder: 1, createdAt: new Date() },
+    genre: { id: "1", name: "ラーメン", sortOrder: 1, createdAt: new Date() },
     recommendation: {
-      id: 1,
-      genreId: 1,
+      id: "1",
+      genreId: "1",
       name: "麺屋 大学前",
       address: "東京都新宿区西新宿1-2-3",
       latitude: 35.6907,
@@ -36,10 +58,10 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
     },
   },
   {
-    genre: { id: 2, name: "カレー", sortOrder: 2, createdAt: new Date() },
+    genre: { id: "2", name: "カレー", sortOrder: 2, createdAt: new Date() },
     recommendation: {
-      id: 2,
-      genreId: 2,
+      id: "2",
+      genreId: "2",
       name: "スパイスカレー ことこと",
       address: "東京都新宿区西新宿2-4-1",
       latitude: 35.6895,
@@ -55,10 +77,10 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
     },
   },
   {
-    genre: { id: 3, name: "定食", sortOrder: 3, createdAt: new Date() },
+    genre: { id: "3", name: "定食", sortOrder: 3, createdAt: new Date() },
     recommendation: {
-      id: 3,
-      genreId: 3,
+      id: "3",
+      genreId: "3",
       name: "大衆食堂 みのり",
       address: "東京都新宿区西新宿3-1-8",
       latitude: 35.6928,
@@ -74,10 +96,10 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
     },
   },
   {
-    genre: { id: 4, name: "カフェ", sortOrder: 4, createdAt: new Date() },
+    genre: { id: "4", name: "カフェ", sortOrder: 4, createdAt: new Date() },
     recommendation: {
-      id: 4,
-      genreId: 4,
+      id: "4",
+      genreId: "4",
       name: "サンドイッチ&コーヒー Leaf",
       address: "東京都新宿区西新宿1-6-2",
       latitude: 35.6902,
