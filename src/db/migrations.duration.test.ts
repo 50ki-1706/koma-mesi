@@ -110,10 +110,20 @@ async function seedRestaurants(
   for (let index = 1; index <= 3; index++) {
     const restaurantId = `restaurant-test-${index}`;
     restaurantIds.push(restaurantId);
-    await client.execute(
-      `INSERT INTO restaurants (id, google_place_id, name, address, latitude, longitude, created_at, updated_at)
-       VALUES ('${restaurantId}', 'place-test-${index}', 'Test Restaurant ${index}', 'Test Address ${index}', 35.681236, 139.767125, 0, 0)`,
-    );
+    await client.execute({
+      sql: `INSERT INTO restaurants (id, google_place_id, name, address, latitude, longitude, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        restaurantId,
+        `place-test-${index}`,
+        `Test Restaurant ${index}`,
+        `Test Address ${index}`,
+        35.681236,
+        139.767125,
+        0,
+        0,
+      ],
+    });
   }
   return restaurantIds;
 }
@@ -134,15 +144,22 @@ async function seedRecommendations(
   for (let index = 0; index < distanceGroups.length; index++) {
     const distanceGroup = distanceGroups[index];
     const distanceMeters = (index + 1) * 100;
-    await client.execute(
-      `INSERT INTO recommendations (
+    await client.execute({
+      sql: `INSERT INTO recommendations (
          id, batch_id, recommendation_category_id, restaurant_id,
          distance_group, distance_meters, duration_minutes, created_at
-       ) VALUES (
-         'rec-test-${distanceGroup}', 'batch-test', 'category-test', '${restaurantIds[index]}',
-         '${distanceGroup}', ${distanceMeters}, ${durations[index]}, 0
-       )`,
-    );
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        `rec-test-${distanceGroup}`,
+        "batch-test",
+        "category-test",
+        restaurantIds[index],
+        distanceGroup,
+        distanceMeters,
+        durations[index],
+        0,
+      ],
+    });
   }
 }
 
