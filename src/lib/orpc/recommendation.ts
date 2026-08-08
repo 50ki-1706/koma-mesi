@@ -18,6 +18,17 @@ import type { ORPCContext } from "./context";
 
 const base = os.$context<ORPCContext>();
 
+/** 認証済みユーザーIDを後続handlerへ渡すprocedure基底。 */
+const protectedProcedure = base.use(({ context, next }) => {
+  const userId = context.session?.user.id;
+  if (userId === undefined) {
+    throw new ORPCError("UNAUTHORIZED", {
+      message: "ログインが必要です。",
+    });
+  }
+  return next({ context: { userId } });
+});
+
 /**
  * 推薦生成の業務エラーをoRPCエラーへ変換する。
  *
@@ -38,7 +49,7 @@ function throwRecommendationError(error: unknown): never {
 }
 
 /** ログインユーザーの対象日について3カテゴリ×3店舗を生成する。 */
-export const generateRecommendationsProcedure = base
+export const generateRecommendationsProcedure = protectedProcedure
   .route({
     method: "POST",
     path: "/recommendations/generate",
@@ -49,15 +60,8 @@ export const generateRecommendationsProcedure = base
   .input(GenerateRecommendationsInputSchema)
   .output(GenerateRecommendationsOutputSchema)
   .handler(async ({ context, input }) => {
-    const userId = context.session?.user.id;
-    if (userId === undefined) {
-      throw new ORPCError("UNAUTHORIZED", {
-        message: "ログインが必要です。",
-      });
-    }
-
     const command: GenerateDailyRecommendationsCommand = {
-      userId,
+      userId: context.userId,
       targetDate: input.targetDate,
     };
     try {
@@ -68,7 +72,7 @@ export const generateRecommendationsProcedure = base
   });
 
 /** ログインユーザーの対象日について保存済み推薦を取得する。 */
-export const getRecommendationsProcedure = base
+export const getRecommendationsProcedure = protectedProcedure
   .route({
     method: "GET",
     path: "/recommendations",
@@ -79,15 +83,8 @@ export const getRecommendationsProcedure = base
   .input(GetRecommendationsInputSchema)
   .output(GetRecommendationsOutputSchema)
   .handler(async ({ context, input }) => {
-    const userId = context.session?.user.id;
-    if (userId === undefined) {
-      throw new ORPCError("UNAUTHORIZED", {
-        message: "ログインが必要です。",
-      });
-    }
-
     return context.getRecommendations({
-      userId,
+      userId: context.userId,
       targetDate: input.targetDate,
     });
   });
