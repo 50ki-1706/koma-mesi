@@ -86,7 +86,7 @@ export function RecommendationsScreen() {
 
   return (
     <main
-      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 pb-32 text-ink sm:p-6 sm:pb-32 lg:flex-row lg:gap-6 lg:pb-32"
+      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 pb-32 text-ink sm:p-6 sm:pb-32 lg:flex-row lg:gap-6 lg:pb-6"
       aria-label="おすすめの飲食店"
     >
       <div className="flex min-h-0 flex-1 flex-col lg:max-w-md">
@@ -149,15 +149,15 @@ export function RecommendationsScreen() {
         </div>
       ) : null}
 
-      <BottomSheet
-        isOpen={isBottomSheetOpen}
-        title={currentItem?.recommendation.name}
-        onOpen={openBottomSheet}
-        onClose={closeBottomSheet}
-      >
-        {currentItem !== null ? (
-          <div>
-            <div className="lg:hidden">
+      <div className="lg:hidden">
+        <BottomSheet
+          isOpen={isBottomSheetOpen}
+          title={currentItem?.recommendation.name}
+          onOpen={openBottomSheet}
+          onClose={closeBottomSheet}
+        >
+          {currentItem !== null ? (
+            <div>
               <div className="mb-5 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-brand-soft p-4">
                   <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
@@ -179,13 +179,7 @@ export function RecommendationsScreen() {
                   </p>
                 </div>
               </div>
-              <p className="mb-2 text-xs font-black text-ink">お店の写真</p>
-              {/* biome-ignore lint/performance/noImgElement: 外部の飲食店写真URLを表示するため next/image のドメイン許可設定を避ける */}
-              <img
-                className="mb-5 h-32 w-full rounded-2xl object-cover"
-                src={currentItem.recommendation.photoUrl}
-                alt={`${currentItem.recommendation.name}の店内・料理写真`}
-              />
+              
 
               <button
                 className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
@@ -196,39 +190,10 @@ export function RecommendationsScreen() {
               </button>
             </div>
 
-            <div className="hidden lg:block">
-              <div className="mb-5 flex gap-3">
-                <div className="flex-1 rounded-2xl bg-brand-soft p-4">
-                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
-                    WALK
-                  </p>
-                  <p className="font-black text-ink">
-                    {currentItem.recommendation.durationMinutes}分
-                    <span className="ml-2 text-xs font-medium text-ink-muted">
-                      大学から {currentItem.recommendation.distanceMeters}m
-                    </span>
-                  </p>
-                </div>
-                <div className="flex-1 rounded-2xl bg-surface-muted p-4">
-                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-ink-muted">
-                    BUDGET
-                  </p>
-                  <p className="font-black text-ink">
-                    約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-              <p className="mb-2 text-xs font-black text-ink">お店の写真</p>
-              {/* biome-ignore lint/performance/noImgElement: 外部の飲食店写真URLを表示するため next/image のドメイン許可設定を避ける */}
-              <img
-                className="mb-5 h-36 w-full rounded-2xl object-cover"
-                src={currentItem.recommendation.photoUrl}
-                alt={`${currentItem.recommendation.name}の店内・料理写真`}
-              />
-            </div>
-          </div>
-        ) : null}
-      </BottomSheet>
-    </main>
+            
+                 ) : null}
+        </BottomSheet>
+      </div>
+          </main>
   );
 }

@@ -4,3 +4,7 @@
 
 /** レコメンドページのルートパス。 */
 export const RECOMMENDATIONS_PATH = "/recommendations";
+
+
+/** 店舗カードの写真を切り替える間隔（ミリ秒）。 */
+export const RECOMMENDATION_PHOTO_INTERVAL_MS = 5000;

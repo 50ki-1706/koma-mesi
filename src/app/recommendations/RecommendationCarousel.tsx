@@ -150,12 +150,37 @@ export function RecommendationCarousel({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
-        <RecommendationCard item={currentItem} onSelect={handleSelectCard} />
+        <RecommendationCard
+          key={currentItem.recommendation.id}
+          item={currentItem}
+          onSelect={handleSelectCard}
+        />
         <EdgeNavigationButton
           direction="previous"
           onNavigate={onSwipePrevious}
         />
         <EdgeNavigationButton direction="next" onNavigate={onSwipeNext} />
+      </div>
+            <div className="mt-4 hidden shrink-0 grid-cols-2 gap-3 lg:grid">
+        <div className="rounded-2xl bg-brand-soft p-4">
+          <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
+            WALK
+          </p>
+          <p className="font-black text-ink">
+            {currentItem.recommendation.durationMinutes}分
+            <span className="ml-2 text-xs font-medium text-ink-muted">
+              大学から {currentItem.recommendation.distanceMeters}m
+            </span>
+          </p>
+        </div>
+        <div className="rounded-2xl bg-surface-muted p-4">
+          <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-ink-muted">
+            BUDGET
+          </p>
+          <p className="font-black text-ink">
+            約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+          </p>
+        </div>
       </div>
       <div className="mt-4 flex shrink-0 items-center justify-center gap-1.5">
         {items.map((item, index) => (

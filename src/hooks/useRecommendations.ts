@@ -27,6 +27,7 @@ export interface FeaturedRecommendation {
     distanceMeters: number;
     durationMinutes: number;
     photoUrl: string;
+        photoUrls: string[];
     priceYen: number;
     platformUrl: string;
     isFeatured: boolean;
@@ -50,6 +51,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 450,
       durationMinutes: 6,
       photoUrl: "https://picsum.photos/seed/ramen/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/ramen/600/400",
+        "https://picsum.photos/seed/ramen-noodles/600/400",
+        "https://picsum.photos/seed/ramen-counter/600/400",
+      ],
       priceYen: 850,
       platformUrl: "https://example.com/ramen",
       isFeatured: true,
@@ -69,6 +75,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 320,
       durationMinutes: 4,
       photoUrl: "https://picsum.photos/seed/curry/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/curry/600/400",
+        "https://picsum.photos/seed/curry-spice/600/400",
+        "https://picsum.photos/seed/curry-table/600/400",
+      ],
       priceYen: 780,
       platformUrl: "https://example.com/curry",
       isFeatured: true,
@@ -88,6 +99,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 600,
       durationMinutes: 8,
       photoUrl: "https://picsum.photos/seed/teishoku/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/teishoku/600/400",
+        "https://picsum.photos/seed/teishoku-dish/600/400",
+        "https://picsum.photos/seed/teishoku-room/600/400",
+      ],
       priceYen: 950,
       platformUrl: "https://example.com/teishoku",
       isFeatured: true,
@@ -107,6 +123,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 280,
       durationMinutes: 3,
       photoUrl: "https://picsum.photos/seed/cafe/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/cafe/600/400",
+        "https://picsum.photos/seed/cafe-sandwich/600/400",
+        "https://picsum.photos/seed/cafe-coffee/600/400",
+      ],
       priceYen: 690,
       platformUrl: "https://example.com/cafe",
       isFeatured: true,
