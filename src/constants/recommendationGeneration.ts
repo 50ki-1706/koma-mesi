@@ -47,7 +47,12 @@ export const GOOGLE_PRIMARY_TYPES_BY_LUNCH_CATEGORY = {
     "yakitori_restaurant",
   ],
   洋食: ["western_restaurant", "family_restaurant", "steak_house"],
-  イタリアン・フレンチ: ["italian_restaurant", "french_restaurant", "bistro"],
+  // biome-ignore format: Turbopackで中点を含むキーを文字列として解釈させる。
+  "イタリアン・フレンチ": [
+    "italian_restaurant",
+    "french_restaurant",
+    "bistro",
+  ],
   中華: [
     "chinese_restaurant",
     "cantonese_restaurant",
@@ -55,13 +60,15 @@ export const GOOGLE_PRIMARY_TYPES_BY_LUNCH_CATEGORY = {
     "dumpling_restaurant",
     "chinese_noodle_restaurant",
   ],
-  焼肉・ホルモン: [
+  // biome-ignore format: Turbopackで中点を含むキーを文字列として解釈させる。
+  "焼肉・ホルモン": [
     "yakiniku_restaurant",
     "korean_barbecue_restaurant",
     "barbecue_restaurant",
   ],
   韓国料理: ["korean_restaurant"],
-  アジア・エスニック料理: [
+  // biome-ignore format: Turbopackで中点を含むキーを文字列として解釈させる。
+  "アジア・エスニック料理": [
     "asian_restaurant",
     "indian_restaurant",
     "thai_restaurant",
@@ -77,7 +84,8 @@ export const GOOGLE_PRIMARY_TYPES_BY_LUNCH_CATEGORY = {
     "african_restaurant",
   ],
   ラーメン: ["ramen_restaurant"],
-  カフェ・スイーツ: [
+  // biome-ignore format: Turbopackで中点を含むキーを文字列として解釈させる。
+  "カフェ・スイーツ": [
     "cafe",
     "coffee_shop",
     "dessert_restaurant",
