@@ -1,5 +1,7 @@
-// Drizzle Kit configuration.
-// Loads database credentials from the shared resolver so CLI commands match runtime behavior.
+/**
+ * Drizzle Kit configuration for the SQLite schema and migration output.
+ * Loads database credentials from the shared resolver so CLI commands match runtime behavior.
+ */
 
 import { defineConfig } from "drizzle-kit";
 import { resolveDatabaseCredentials } from "./src/db/env";
