@@ -190,6 +190,69 @@ export const restaurants = sqliteTable("restaurants", {
     .$onUpdate(() => new Date()),
 });
 
+/** Google Placesから取得した店舗画像URLを複数保持するテーブル。 */
+export const restaurantPhotos = sqliteTable(
+  "restaurant_photos",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    restaurantId: text("restaurant_id")
+      .notNull()
+      .references(() => restaurants.id, {
+        onDelete: "cascade",
+        onUpdate: "no action",
+      }),
+    photoUrl: text("photo_url").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex("restaurant_photos_restaurant_id_photo_url_unique").on(
+      table.restaurantId,
+      table.photoUrl,
+    ),
+  ],
+);
+
+/** Google Placesから取得した店舗ごとの料金レンジを保持するテーブル。 */
+export const restaurantPriceRanges = sqliteTable(
+  "restaurant_price_ranges",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    restaurantId: text("restaurant_id")
+      .notNull()
+      .unique()
+      .references(() => restaurants.id, {
+        onDelete: "cascade",
+        onUpdate: "no action",
+      }),
+    currencyCode: text("currency_code").notNull(),
+    startPrice: integer("start_price").notNull(),
+    endPrice: integer("end_price"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    check(
+      "restaurant_price_ranges_start_price_check",
+      sql`${table.startPrice} >= 0`,
+    ),
+    check(
+      "restaurant_price_ranges_end_price_check",
+      sql`${table.endPrice} is null or ${table.endPrice} > ${table.startPrice}`,
+    ),
+  ],
+);
+
 /** カテゴリごとに選出されたnear・middle・farの店舗を保持するテーブル。 */
 export const recommendations = sqliteTable(
   "recommendations",

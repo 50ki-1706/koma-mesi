@@ -313,6 +313,100 @@ describe("daily recommendation schema", () => {
     );
   });
 
+  it("同じ店舗に複数の商品画像URLを保存できる", async () => {
+    const { restaurant } = await seedRecommendationDependencies(
+      db,
+      "user-photos",
+    );
+
+    const photos = await db
+      .insert(schema.restaurantPhotos)
+      .values([
+        {
+          restaurantId: restaurant.id,
+          photoUrl: "https://example.com/restaurant/photo-1.jpg",
+        },
+        {
+          restaurantId: restaurant.id,
+          photoUrl: "https://example.com/restaurant/photo-2.jpg",
+        },
+      ])
+      .returning();
+
+    expect(photos).toHaveLength(2);
+    expect(photos.map((photo) => photo.photoUrl)).toEqual([
+      "https://example.com/restaurant/photo-1.jpg",
+      "https://example.com/restaurant/photo-2.jpg",
+    ]);
+  });
+
+  it("同じ店舗に同じ商品画像URLを重複保存できない", async () => {
+    const { restaurant } = await seedRecommendationDependencies(
+      db,
+      "user-duplicate-photo",
+    );
+    const photoUrl = "https://example.com/restaurant/photo.jpg";
+    await db.insert(schema.restaurantPhotos).values({
+      restaurantId: restaurant.id,
+      photoUrl,
+    });
+
+    await expectDatabaseError(
+      db.insert(schema.restaurantPhotos).values({
+        restaurantId: restaurant.id,
+        photoUrl,
+      }),
+      /UNIQUE constraint failed: restaurant_photos\.restaurant_id, restaurant_photos\.photo_url/,
+    );
+  });
+
+  it("店舗の料金レンジを保存できる", async () => {
+    const { restaurant } = await seedRecommendationDependencies(
+      db,
+      "user-price-range",
+    );
+
+    const [priceRange] = await db
+      .insert(schema.restaurantPriceRanges)
+      .values({
+        restaurantId: restaurant.id,
+        currencyCode: "JPY",
+        startPrice: 1_000,
+        endPrice: 3_000,
+      })
+      .returning();
+
+    expect(priceRange).toMatchObject({
+      restaurantId: restaurant.id,
+      currencyCode: "JPY",
+      startPrice: 1_000,
+      endPrice: 3_000,
+    });
+  });
+
+  it("同じ店舗に料金レンジを重複保存できない", async () => {
+    const { restaurant } = await seedRecommendationDependencies(
+      db,
+      "user-duplicate-price-range",
+    );
+    await db.insert(schema.restaurantPriceRanges).values({
+      restaurantId: restaurant.id,
+      currencyCode: "JPY",
+      startPrice: 1_000,
+      endPrice: 3_000,
+    });
+
+    await expectDatabaseError(
+      db.insert(schema.restaurantPriceRanges).values({
+        restaurantId: restaurant.id,
+        currencyCode: "JPY",
+        startPrice: 3_000,
+        endPrice: 5_000,
+      }),
+      /UNIQUE constraint failed: restaurant_price_ranges\.restaurant_id/,
+    );
+  });
+
   it("同じユーザーに設定を重複登録できない", async () => {
     await insertTestUser(db, "user-preference");
     await db.insert(schema.userPreferences).values({
