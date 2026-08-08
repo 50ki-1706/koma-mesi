@@ -64,7 +64,7 @@ async function seedRecommendationDependencies(
     .returning();
   const [category] = await db
     .insert(schema.recommendationCategories)
-    .values({ batchId: batch.id, category: "和食", selectionOrder: 1 })
+    .values({ batchId: batch.id, category: "和食" })
     .returning();
   const [restaurant] = await db
     .insert(schema.restaurants)
@@ -153,7 +153,6 @@ describe("daily recommendation schema", () => {
       db.insert(schema.recommendationCategories).values({
         batchId: batch.id,
         category: sql`${"対象外カテゴリ"}`,
-        selectionOrder: 1,
       }),
       /CHECK constraint failed: recommendation_categories_category_check/,
     );
@@ -235,26 +234,6 @@ describe("daily recommendation schema", () => {
       /CHECK constraint failed: recommendation_batches_target_date_check/,
     );
   });
-
-  it.each([0, 4])(
-    "カテゴリの選択順に%dを登録できない",
-    async (selectionOrder) => {
-      await insertTestUser(db, "user-3");
-      const [batch] = await db
-        .insert(schema.recommendationBatches)
-        .values({ userId: "user-3", targetDate: "2026-08-08" })
-        .returning();
-
-      await expectDatabaseError(
-        db.insert(schema.recommendationCategories).values({
-          batchId: batch.id,
-          category: "ラーメン",
-          selectionOrder,
-        }),
-        /CHECK constraint failed: recommendation_categories_selection_order_check/,
-      );
-    },
-  );
 
   it("負の距離を登録できない", async () => {
     const { batch, category, restaurant } =
@@ -354,7 +333,6 @@ describe("daily recommendation schema", () => {
       db.insert(schema.recommendationCategories).values({
         batchId: "missing-batch-id",
         category: "ラーメン",
-        selectionOrder: 1,
       }),
       /FOREIGN KEY constraint failed/,
     );

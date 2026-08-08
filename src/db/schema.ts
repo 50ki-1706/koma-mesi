@@ -151,7 +151,6 @@ export const recommendationCategories = sqliteTable(
         onUpdate: "no action",
       }),
     category: text("category", { enum: HOTPEPPER_GENRES }).notNull(),
-    selectionOrder: integer("selection_order").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -161,10 +160,6 @@ export const recommendationCategories = sqliteTable(
       table.batchId,
       table.category,
     ),
-    uniqueIndex("recommendation_categories_batch_id_selection_order_unique").on(
-      table.batchId,
-      table.selectionOrder,
-    ),
     unique("recommendation_categories_id_batch_id_unique").on(
       table.id,
       table.batchId,
@@ -172,10 +167,6 @@ export const recommendationCategories = sqliteTable(
     check(
       "recommendation_categories_category_check",
       inArray(table.category, HOTPEPPER_GENRES).inlineParams(),
-    ),
-    check(
-      "recommendation_categories_selection_order_check",
-      sql`${table.selectionOrder} between 1 and 3`,
     ),
   ],
 );
