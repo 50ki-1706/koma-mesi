@@ -5,25 +5,18 @@
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
-import {
-  type GenerateDailyRecommendationsCommand,
-  generateDailyRecommendations,
-} from "@/shared/recommendations/generate";
+import type { DailyRecommendationGenerator } from "@/shared/recommendations/cron";
+import { generateDailyRecommendations } from "@/shared/recommendations/generate";
 import { GooglePlacesClient } from "@/shared/recommendations/googlePlaces";
 import {
   type GetDailyRecommendationsCommand,
   getDailyRecommendations,
 } from "@/shared/recommendations/read";
 import { DrizzleRecommendationRepository } from "@/shared/recommendations/repository";
-import type {
-  GenerateRecommendationsOutput,
-  GetRecommendationsOutput,
-} from "@/shared/recommendations/schemas";
+import type { GetRecommendationsOutput } from "@/shared/recommendations/schemas";
 
 /** 推薦生成procedureから呼び出すユースケース。 */
-export type RecommendationGenerator = (
-  command: GenerateDailyRecommendationsCommand,
-) => Promise<GenerateRecommendationsOutput>;
+export type RecommendationGenerator = DailyRecommendationGenerator;
 
 /** 推薦取得procedureから呼び出すユースケース。 */
 export type RecommendationReader = (
