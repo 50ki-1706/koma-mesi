@@ -57,6 +57,32 @@ describe("runDailyRecommendationCron", () => {
 });
 
 describe("createDailyRecommendationCronHandler", () => {
+  it.each([undefined, ""])(
+    "CRON_SECRETが%jなら実行しない",
+    async (cronSecret) => {
+      const run = vi.fn(async () => ({
+        targetDate: "2026-08-09",
+        totalUsers: 0,
+        completedUsers: 0,
+        skippedUsers: 0,
+        failedUsers: 0,
+      }));
+      const handler = createDailyRecommendationCronHandler({
+        cronSecret,
+        run,
+      });
+
+      const response = await handler(
+        new Request("https://example.com/api/cron/recommendations", {
+          headers: { authorization: "Bearer " },
+        }),
+      );
+
+      expect(response.status).toBe(401);
+      expect(run).not.toHaveBeenCalled();
+    },
+  );
+
   it("Bearerトークンが一致しなければ実行しない", async () => {
     const run = vi.fn(async () => ({
       targetDate: "2026-08-09",
@@ -76,6 +102,72 @@ describe("createDailyRecommendationCronHandler", () => {
 
     expect(response.status).toBe(401);
     expect(run).not.toHaveBeenCalled();
+  });
+
+  it("誤ったBearerトークンでは実行しない", async () => {
+    const run = vi.fn(async () => ({
+      targetDate: "2026-08-09",
+      totalUsers: 0,
+      completedUsers: 0,
+      skippedUsers: 0,
+      failedUsers: 0,
+    }));
+    const handler = createDailyRecommendationCronHandler({
+      cronSecret: "cron-secret",
+      run,
+    });
+
+    const response = await handler(
+      new Request("https://example.com/api/cron/recommendations", {
+        headers: { authorization: "Bearer wrong-secret" },
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("全ユーザーの生成が成功した場合は200と集計結果を返す", async () => {
+    const result = {
+      targetDate: "2026-08-09",
+      totalUsers: 2,
+      completedUsers: 2,
+      skippedUsers: 0,
+      failedUsers: 0,
+    };
+    const handler = createDailyRecommendationCronHandler({
+      cronSecret: "cron-secret",
+      run: vi.fn(async () => result),
+    });
+
+    const response = await handler(
+      new Request("https://example.com/api/cron/recommendations", {
+        headers: { authorization: "Bearer cron-secret" },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(result);
+  });
+
+  it("Cron実行自体が失敗した場合は500を返す", async () => {
+    const handler = createDailyRecommendationCronHandler({
+      cronSecret: "cron-secret",
+      run: vi.fn(async () => {
+        throw new Error("database unavailable");
+      }),
+    });
+
+    const response = await handler(
+      new Request("https://example.com/api/cron/recommendations", {
+        headers: { authorization: "Bearer cron-secret" },
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      message: "日次推薦Cronを実行できませんでした。",
+    });
   });
 
   it("一部ユーザーが失敗した場合は500と集計結果を返す", async () => {
