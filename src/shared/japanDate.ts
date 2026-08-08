@@ -3,10 +3,7 @@
  * 推薦生成・取得・Cronで同じ日付境界を利用する。
  */
 
-import {
-  JAPAN_TIME_ZONE,
-  MILLISECONDS_PER_DAY,
-} from "@/constants/dateTime";
+import { JAPAN_TIME_ZONE, MILLISECONDS_PER_DAY } from "@/constants/dateTime";
 
 /**
  * Dateを日本時間のYYYY-MM-DDへ変換する。

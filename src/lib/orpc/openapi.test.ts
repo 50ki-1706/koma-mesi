@@ -61,9 +61,7 @@ describe("OpenAPI specification", () => {
     );
 
     expect(response?.status).toBe(200);
-    expect(response?.headers.get("content-type")).toContain(
-      "application/json",
-    );
+    expect(response?.headers.get("content-type")).toContain("application/json");
     await expect(response?.json()).resolves.toMatchObject({
       info: { title: "koma-mesi API", version: "1.0.0" },
     });

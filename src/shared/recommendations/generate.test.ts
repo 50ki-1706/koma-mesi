@@ -4,8 +4,8 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import type { RecommendationGenerationError } from "./generate";
 import { formatJapanDate } from "../japanDate";
+import type { RecommendationGenerationError } from "./generate";
 import { generateDailyRecommendations } from "./generate";
 import type { GooglePlaceDetails, GooglePlacesGateway } from "./googlePlaces";
 import type {
@@ -214,10 +214,7 @@ describe("generateDailyRecommendations", () => {
       { userId: "user-1" },
     );
 
-    expect(repository.createBatch).toHaveBeenCalledWith(
-      "user-1",
-      "2026-08-09",
-    );
+    expect(repository.createBatch).toHaveBeenCalledWith("user-1", "2026-08-09");
   });
 
   it("バッチ作成が競合したら生成済みエラーに変換する", async () => {

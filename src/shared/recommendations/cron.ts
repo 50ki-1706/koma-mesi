@@ -4,9 +4,9 @@
  */
 
 import { timingSafeEqual } from "node:crypto";
+import { formatJapanDate } from "../japanDate";
 import type { GenerateDailyRecommendationsCommand } from "./generate";
 import { RecommendationGenerationError } from "./generate";
-import { formatJapanDate } from "../japanDate";
 import type { RecommendationCronRepository } from "./repository";
 import type {
   DailyRecommendationCronOutput,
@@ -34,10 +34,7 @@ export interface RecommendationCronLogger {
    * @param message - ログの概要。
    * @param details - 対象ユーザーと捕捉したエラー。
    */
-  error(
-    message: string,
-    details: { userId: string; error: unknown },
-  ): void;
+  error(message: string, details: { userId: string; error: unknown }): void;
 }
 
 /** Cron Route Handlerの依存関係。 */
@@ -90,10 +87,10 @@ export async function runDailyRecommendationCron(
       ) {
         skippedUsers += 1;
       } else {
-        (dependencies.logger ?? console).error(
-          "日次推薦生成に失敗しました。",
-          { userId, error },
-        );
+        (dependencies.logger ?? console).error("日次推薦生成に失敗しました。", {
+          userId,
+          error,
+        });
         failedUsers += 1;
       }
     }

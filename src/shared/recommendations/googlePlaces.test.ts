@@ -130,9 +130,7 @@ describe("GooglePlacesClient", () => {
 
   it("Google Placesのタイムアウトを専用エラーへ変換する", async () => {
     const timeoutError = new DOMException("Timed out", "TimeoutError");
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockRejectedValue(timeoutError);
+    const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(timeoutError);
     const client = new GooglePlacesClient("server-api-key", fetchMock);
 
     await expect(

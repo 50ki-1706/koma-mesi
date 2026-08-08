@@ -125,14 +125,18 @@ describe("router.recommendation.generate", () => {
     });
 
     await expect(
-      call(router.recommendation.generate, {}, {
-        context: {
-          db,
-          session: authenticatedSession,
-          generateRecommendations: generate,
-          getRecommendations,
+      call(
+        router.recommendation.generate,
+        {},
+        {
+          context: {
+            db,
+            session: authenticatedSession,
+            generateRecommendations: generate,
+            getRecommendations,
+          },
         },
-      }),
+      ),
     ).rejects.toMatchObject({ code: "CONFLICT" });
   });
 
@@ -145,14 +149,18 @@ describe("router.recommendation.generate", () => {
     });
 
     await expect(
-      call(router.recommendation.generate, {}, {
-        context: {
-          db,
-          session: authenticatedSession,
-          generateRecommendations: generate,
-          getRecommendations,
+      call(
+        router.recommendation.generate,
+        {},
+        {
+          context: {
+            db,
+            session: authenticatedSession,
+            generateRecommendations: generate,
+            getRecommendations,
+          },
         },
-      }),
+      ),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
@@ -162,14 +170,18 @@ describe("router.recommendation.generate", () => {
     });
 
     await expect(
-      call(router.recommendation.generate, {}, {
-        context: {
-          db,
-          session: authenticatedSession,
-          generateRecommendations: generate,
-          getRecommendations,
+      call(
+        router.recommendation.generate,
+        {},
+        {
+          context: {
+            db,
+            session: authenticatedSession,
+            generateRecommendations: generate,
+            getRecommendations,
+          },
         },
-      }),
+      ),
     ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
   });
 });

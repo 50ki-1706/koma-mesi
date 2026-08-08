@@ -49,10 +49,10 @@ describe("runDailyRecommendationCron", () => {
       failedUsers: 1,
     });
     expect(generateRecommendations).toHaveBeenCalledTimes(3);
-    expect(logger.error).toHaveBeenCalledWith(
-      "日次推薦生成に失敗しました。",
-      { userId: "user-failed", error: generationError },
-    );
+    expect(logger.error).toHaveBeenCalledWith("日次推薦生成に失敗しました。", {
+      userId: "user-failed",
+      error: generationError,
+    });
   });
 });
 

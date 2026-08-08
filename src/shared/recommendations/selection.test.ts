@@ -155,9 +155,7 @@ describe("selectDailyRecommendations", () => {
         { latitude: 35.681236, longitude: 139.767125 },
         () => 0,
       ),
-    ).rejects.toEqual(
-      new InsufficientRecommendationCandidatesError(),
-    );
+    ).rejects.toEqual(new InsufficientRecommendationCandidatesError());
     expect(gateway.searchNearby).toHaveBeenCalledTimes(11);
   });
 });
