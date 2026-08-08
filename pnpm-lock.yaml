@@ -18,7 +18,7 @@ importers:
         specifier: 1.14.2
         version: 1.14.2(ws@8.21.2)
       '@orpc/server':
-        specifier: ^1.14.2
+        specifier: 1.14.2
         version: 1.14.2(ws@8.21.2)
       '@orpc/zod':
         specifier: 1.14.2
