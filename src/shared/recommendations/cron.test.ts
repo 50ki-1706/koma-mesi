@@ -104,7 +104,7 @@ describe("createDailyRecommendationCronHandler", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it("誤ったBearerトークンでは実行しない", async () => {
+  it("同じ長さの誤ったBearerトークンでは実行しない", async () => {
     const run = vi.fn(async () => ({
       targetDate: "2026-08-09",
       totalUsers: 0,
@@ -119,7 +119,7 @@ describe("createDailyRecommendationCronHandler", () => {
 
     const response = await handler(
       new Request("https://example.com/api/cron/recommendations", {
-        headers: { authorization: "Bearer wrong-secret" },
+        headers: { authorization: "Bearer cron-secrex" },
       }),
     );
 
