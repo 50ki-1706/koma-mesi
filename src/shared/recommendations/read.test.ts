@@ -4,17 +4,22 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import { createDailyRecommendationMock } from "./mock";
 import { getDailyRecommendations } from "./read";
 import type { RecommendationReadRepository } from "./repository";
+import type { GetRecommendationsOutput } from "./schemas";
 
 /**
  * 取得テスト用Repositoryを生成する。
  *
- * @returns 完了済み推薦がないRepositoryスタブ。
+ * @param recommendation - Repositoryから返す保存済み推薦。
+ * @returns 指定された推薦を返すRepositoryスタブ。
  */
-function createRepository(): RecommendationReadRepository {
+function createRepository(
+  recommendation: GetRecommendationsOutput = null,
+): RecommendationReadRepository {
   return {
-    findCompletedRecommendation: vi.fn(async () => null),
+    findCompletedRecommendation: vi.fn(async () => recommendation),
   };
 }
 
@@ -50,5 +55,17 @@ describe("getDailyRecommendations", () => {
       "user-1",
       "2026-08-10",
     );
+  });
+
+  it("保存済み推薦が存在する場合は内容を変更せず返す", async () => {
+    const recommendation = createDailyRecommendationMock("2026-08-10");
+    const repository = createRepository(recommendation);
+
+    await expect(
+      getDailyRecommendations(
+        { repository },
+        { userId: "user-1", targetDate: "2026-08-10" },
+      ),
+    ).resolves.toBe(recommendation);
   });
 });
