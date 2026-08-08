@@ -78,25 +78,37 @@ export const verification = sqliteTable("verification", {
 });
 
 /**ユーザーごとの推薦検索起点となる大学住所を保持するテーブル。 */
-export const userPreferences = sqliteTable("user_preferences", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .unique()
-    .references(() => user.id, { onDelete: "cascade", onUpdate: "no action" }),
-  campusAddress: text("campus_address").notNull(),
-  campusLatitude: real("campus_latitude"),
-  campusLongitude: real("campus_longitude"),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => new Date()),
-});
+export const userPreferences = sqliteTable(
+  "user_preferences",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, {
+        onDelete: "cascade",
+        onUpdate: "no action",
+      }),
+    campusAddress: text("campus_address").notNull(),
+    campusLatitude: real("campus_latitude"),
+    campusLongitude: real("campus_longitude"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    check(
+      "user_preferences_campus_coordinates_check",
+      sql`(${table.campusLatitude} is null and ${table.campusLongitude} is null) or (${table.campusLatitude} is not null and ${table.campusLongitude} is not null and ${table.campusLatitude} between -90 and 90 and ${table.campusLongitude} between -180 and 180)`,
+    ),
+  ],
+);
 
 /** ユーザー単位の日次推薦処理とその進行状態を保持するテーブル。 */
 export const recommendationBatches = sqliteTable(

@@ -92,6 +92,13 @@
       "when": 1786158976460,
       "tag": "0012_previous_sinister_six",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1786160071436,
+      "tag": "0013_free_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

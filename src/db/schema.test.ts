@@ -423,6 +423,58 @@ describe("daily recommendation schema", () => {
     );
   });
 
+  it.each([
+    { campusLatitude: -90, campusLongitude: -180 },
+    { campusLatitude: 35.681236, campusLongitude: 139.767125 },
+    { campusLatitude: 90, campusLongitude: 180 },
+  ])(
+    "有効なキャンパス座標ペアを保存できる: $campusLatitude, $campusLongitude",
+    async ({ campusLatitude, campusLongitude }) => {
+      const userId = `user-coordinates-${campusLatitude}-${campusLongitude}`;
+      await insertTestUser(db, userId);
+
+      const [preference] = await db
+        .insert(schema.userPreferences)
+        .values({
+          userId,
+          campusAddress: "東京都千代田区千代田1-1",
+          campusLatitude,
+          campusLongitude,
+        })
+        .returning();
+
+      expect(preference).toMatchObject({
+        campusLatitude,
+        campusLongitude,
+      });
+    },
+  );
+
+  it.each([
+    { campusLatitude: 35.681236, campusLongitude: null },
+    { campusLatitude: null, campusLongitude: 139.767125 },
+    { campusLatitude: -90.000001, campusLongitude: 139.767125 },
+    { campusLatitude: 90.000001, campusLongitude: 139.767125 },
+    { campusLatitude: 35.681236, campusLongitude: -180.000001 },
+    { campusLatitude: 35.681236, campusLongitude: 180.000001 },
+  ])(
+    "不完全または範囲外のキャンパス座標を保存できない: $campusLatitude, $campusLongitude",
+    async ({ campusLatitude, campusLongitude }) => {
+      const userId = `user-invalid-coordinates-${campusLatitude}-${campusLongitude}`;
+      await insertTestUser(db, userId);
+
+      await expectDatabaseError(
+        db.insert(schema.userPreferences).values({
+          userId,
+          campusAddress: "東京都千代田区千代田1-1",
+          campusLatitude,
+          campusLongitude,
+        }),
+        /CHECK constraint failed: user_preferences_campus_coordinates_check/,
+      );
+    },
+  );
+
   it("存在しないバッチにカテゴリを登録できない", async () => {
     await expectDatabaseError(
       db.insert(schema.recommendationCategories).values({
