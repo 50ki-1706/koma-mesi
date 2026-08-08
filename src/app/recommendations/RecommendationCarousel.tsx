@@ -19,50 +19,6 @@ interface RecommendationCarouselProps {
   onSelectCard: () => void;
 }
 
-interface EdgeNavigationButtonProps {
-  direction: "previous" | "next";
-  onNavigate: () => void;
-}
-
-/**
- * カード端に、前後の店舗へ移動するタップ領域を表示する。
- *
- * @param props - 移動方向と実行する操作。
- * @returns カード端のナビゲーションボタン。
- */
-function EdgeNavigationButton({
-  direction,
-  onNavigate,
-}: EdgeNavigationButtonProps) {
-  const isPrevious = direction === "previous";
-
-  return (
-    <button
-      className={`absolute inset-y-0 z-10 flex w-16 items-center px-3 text-surface opacity-80 transition hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-focus sm:w-20 ${
-        isPrevious
-          ? "left-0 justify-start bg-[linear-gradient(to_right,oklch(0.16_0.025_60/0.32),transparent)]"
-          : "right-0 justify-end bg-[linear-gradient(to_left,oklch(0.16_0.025_60/0.32),transparent)]"
-      }`}
-      type="button"
-      aria-label={isPrevious ? "前の店舗を表示" : "次の店舗を表示"}
-      onClick={(event) => {
-        event.stopPropagation();
-        onNavigate();
-      }}
-    >
-      <svg
-        className={`size-7 fill-none stroke-current stroke-[2.5] drop-shadow-md ${
-          isPrevious ? "" : "rotate-180"
-        }`}
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path d="m15 5-7 7 7 7" />
-      </svg>
-    </button>
-  );
-}
-
 /**
  * スワイプ可能なジャンルカルーセルを表示する。
  *
@@ -155,13 +111,8 @@ export function RecommendationCarousel({
           item={currentItem}
           onSelect={handleSelectCard}
         />
-        <EdgeNavigationButton
-          direction="previous"
-          onNavigate={onSwipePrevious}
-        />
-        <EdgeNavigationButton direction="next" onNavigate={onSwipeNext} />
       </div>
-            <div className="mt-4 hidden shrink-0 grid-cols-2 gap-3 lg:grid">
+      <div className="mt-4 hidden shrink-0 grid-cols-2 gap-3 lg:grid">
         <div className="rounded-2xl bg-brand-soft p-4">
           <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
             WALK

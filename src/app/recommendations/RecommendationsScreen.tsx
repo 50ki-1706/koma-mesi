@@ -179,7 +179,6 @@ export function RecommendationsScreen() {
                   </p>
                 </div>
               </div>
-              
 
               <button
                 className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
@@ -189,11 +188,9 @@ export function RecommendationsScreen() {
                 マップを表示する
               </button>
             </div>
-
-            
-                 ) : null}
+          ) : null}
         </BottomSheet>
       </div>
-          </main>
+    </main>
   );
 }

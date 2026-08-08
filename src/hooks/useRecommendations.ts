@@ -27,7 +27,7 @@ export interface FeaturedRecommendation {
     distanceMeters: number;
     durationMinutes: number;
     photoUrl: string;
-        photoUrls: string[];
+    photoUrls: string[];
     priceYen: number;
     platformUrl: string;
     isFeatured: boolean;
