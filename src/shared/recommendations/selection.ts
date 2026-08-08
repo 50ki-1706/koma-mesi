@@ -29,7 +29,9 @@ export type RandomSource = () => number;
 export class InsufficientRecommendationCandidatesError extends Error {
   /** 推薦候補不足エラーを生成する。 */
   constructor() {
-    super("800m以内に3店舗あるカテゴリを3つ確保できませんでした。");
+    super(
+      `${MAX_CAMPUS_TO_RESTAURANT_DISTANCE_METERS}m以内に${RECOMMENDATIONS_PER_CATEGORY}店舗あるカテゴリを${RECOMMENDATION_CATEGORY_COUNT}つ確保できませんでした。`,
+    );
     this.name = "InsufficientRecommendationCandidatesError";
   }
 }
