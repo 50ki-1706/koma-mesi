@@ -1,0 +1,13 @@
+/**
+ * Google Maps API キーの環境変数取得を担うフック。
+ * ページコンポーネントから環境変数への直接アクセスを分離する。
+ */
+
+/**
+ * 環境変数から Google Maps API キーを取得する。
+ * @returns API キー。未設定・空文字・空白のみの場合は undefined
+ */
+export function useGoogleMapsApiKey(): string | undefined {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+  return apiKey === undefined || apiKey === "" ? undefined : apiKey;
+}

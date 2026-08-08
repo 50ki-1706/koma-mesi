@@ -1,6 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
+
   "id": "facbbbcf-3bd7-473f-9990-4856eaa88dd4",
   "prevId": "d1ef6b01-5473-4aaa-b67d-5672361752a6",
   "tables": {
@@ -111,6 +112,7 @@
           "columnsTo": [
             "id"
           ],
+
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -119,6 +121,7 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+
     "session": {
       "name": "session",
       "columns": {
@@ -266,6 +269,7 @@
           "columns": [
             "email"
           ],
+
           "isUnique": true
         }
       },
