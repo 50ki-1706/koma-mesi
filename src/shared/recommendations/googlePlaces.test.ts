@@ -93,4 +93,22 @@ describe("GooglePlacesClient", () => {
       ]),
     ).rejects.toThrow(GooglePlacesError);
   });
+
+  it("店舗と徒歩経路の件数が一致しなければ拒否する", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      Response.json({
+        places: [{ id: "place-a" }, { id: "place-b" }],
+        routingSummaries: [
+          { legs: [{ duration: "120s", distanceMeters: 300 }] },
+        ],
+      }),
+    );
+    const client = new GooglePlacesClient("server-api-key", fetchMock);
+
+    await expect(
+      client.searchNearby({ latitude: 35.681236, longitude: 139.767125 }, [
+        "ramen_restaurant",
+      ]),
+    ).rejects.toThrow(GooglePlacesError);
+  });
 });

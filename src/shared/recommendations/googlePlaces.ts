@@ -278,19 +278,27 @@ export class GooglePlacesClient implements GooglePlacesGateway {
       (await response.json()) as unknown,
       "Nearby Search",
     );
+    if (
+      parsed.places.length > 0 &&
+      parsed.routingSummaries.length !== parsed.places.length
+    ) {
+      throw new GooglePlacesError(
+        "Nearby Searchの店舗と徒歩経路の件数が一致しません。",
+      );
+    }
 
-    return parsed.places.flatMap((place, index) => {
+    return parsed.places.map((place, index) => {
       const leg = parsed.routingSummaries[index]?.legs[0];
       if (leg === undefined) {
-        return [];
+        throw new GooglePlacesError(
+          "Nearby Searchの徒歩経路情報が不足しています。",
+        );
       }
-      return [
-        {
-          googlePlaceId: place.id,
-          distanceMeters: leg.distanceMeters,
-          campusToRestaurantSeconds: parseDurationSeconds(leg.duration),
-        },
-      ];
+      return {
+        googlePlaceId: place.id,
+        distanceMeters: leg.distanceMeters,
+        campusToRestaurantSeconds: parseDurationSeconds(leg.duration),
+      };
     });
   }
 
