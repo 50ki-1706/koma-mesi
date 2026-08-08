@@ -97,6 +97,8 @@ export const userPreferences = sqliteTable("user_preferences", {
     .unique()
     .references(() => user.id, { onDelete: "cascade", onUpdate: "no action" }),
   campusAddress: text("campus_address").notNull(),
+  campusLatitude: real("campus_latitude"),
+  campusLongitude: real("campus_longitude"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
