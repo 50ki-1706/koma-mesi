@@ -4,12 +4,20 @@
  */
 
 import {
+  LUNCH_RECOMMENDATION_CATEGORIES,
+  RECOMMENDATION_CATEGORY_COUNT,
+} from "@/constants/recommendationGeneration";
+import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
+import { formatJapanDate } from "../japanDate";
+import {
   type GenerateRecommendationsOutput,
   GenerateRecommendationsOutputSchema,
 } from "./schemas";
 
-const MOCK_CATEGORIES = ["和食", "ラーメン", "カフェ・スイーツ"] as const;
-const MOCK_DISTANCE_GROUPS = ["near", "middle", "far"] as const;
+const MOCK_CATEGORIES = LUNCH_RECOMMENDATION_CATEGORIES.slice(
+  0,
+  RECOMMENDATION_CATEGORY_COUNT,
+);
 
 /**
  * 3カテゴリ×3店舗の日次推薦デモデータを生成する。
@@ -18,7 +26,7 @@ const MOCK_DISTANCE_GROUPS = ["near", "middle", "far"] as const;
  * @returns APIレスポンススキーマで検証済みのデモデータ。
  */
 export function createDailyRecommendationMock(
-  targetDate = "2026-08-09",
+  targetDate = formatJapanDate(new Date()),
 ): GenerateRecommendationsOutput {
   return GenerateRecommendationsOutputSchema.parse({
     batchId: `demo-batch-${targetDate}`,
@@ -27,7 +35,7 @@ export function createDailyRecommendationMock(
     categories: MOCK_CATEGORIES.map((category, categoryIndex) => ({
       id: `demo-category-${categoryIndex + 1}`,
       category,
-      recommendations: MOCK_DISTANCE_GROUPS.map(
+      recommendations: DISTANCE_GROUPS.map(
         (distanceGroup, distanceIndex) => ({
           id: `demo-recommendation-${categoryIndex + 1}-${distanceIndex + 1}`,
           distanceGroup,

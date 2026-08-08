@@ -3,11 +3,15 @@
  * 3カテゴリ×3店舗とPlace IDの一意性を固定する。
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createDailyRecommendationMock } from "./mock";
 import { GenerateRecommendationsOutputSchema } from "./schemas";
 
 describe("createDailyRecommendationMock", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("APIと同じ3カテゴリ×3店舗のレスポンスを生成する", () => {
     const mock = createDailyRecommendationMock("2026-08-10");
     const recommendations = mock.categories.flatMap(
@@ -27,5 +31,12 @@ describe("createDailyRecommendationMock", () => {
         ),
       ),
     ).toHaveLength(9);
+  });
+
+  it("対象日を省略した場合は日本時間の当日を使用する", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-08T16:00:00Z"));
+
+    expect(createDailyRecommendationMock().targetDate).toBe("2026-08-09");
   });
 });
