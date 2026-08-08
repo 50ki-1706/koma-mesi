@@ -169,7 +169,7 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: sql`${"invalid-distance-group"}`,
         distanceMeters: 320,
-        durationMinutes: 6,
+        campusToRestaurantSeconds: 360,
       }),
       /CHECK constraint failed: recommendations_distance_group_check/,
     );
@@ -193,7 +193,7 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: 320,
-        durationMinutes: 6,
+        campusToRestaurantSeconds: 360,
       })
       .returning();
 
@@ -206,7 +206,7 @@ describe("daily recommendation schema", () => {
       recommendationCategoryId: category.id,
       restaurantId: restaurant.id,
       distanceGroup: "near",
-      durationMinutes: 6,
+      campusToRestaurantSeconds: 360,
     });
   });
 
@@ -247,13 +247,13 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: -1,
-        durationMinutes: 6,
+        campusToRestaurantSeconds: 360,
       }),
       /CHECK constraint failed: recommendations_distance_meters_check/,
     );
   });
 
-  it("負の片道所要時間を登録できない", async () => {
+  it("負の大学から店舗までの所要秒数を登録できない", async () => {
     const { batch, category, restaurant } =
       await seedRecommendationDependencies(db, "user-duration");
 
@@ -264,9 +264,9 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: 320,
-        durationMinutes: -1,
+        campusToRestaurantSeconds: -1,
       }),
-      /CHECK constraint failed: recommendations_duration_minutes_check/,
+      /CHECK constraint failed: recommendations_campus_to_restaurant_seconds_check/,
     );
   });
 
@@ -279,7 +279,7 @@ describe("daily recommendation schema", () => {
       restaurantId: restaurant.id,
       distanceGroup: "near",
       distanceMeters: 320,
-      durationMinutes: 6,
+      campusToRestaurantSeconds: 360,
     });
 
     await expectDatabaseError(
@@ -289,7 +289,7 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "near",
         distanceMeters: 400,
-        durationMinutes: 7,
+        campusToRestaurantSeconds: 420,
       }),
       /UNIQUE constraint failed: recommendations\.recommendation_category_id, recommendations\.distance_group/,
     );
@@ -304,7 +304,7 @@ describe("daily recommendation schema", () => {
       restaurantId: restaurant.id,
       distanceGroup: "near",
       distanceMeters: 320,
-      durationMinutes: 6,
+      campusToRestaurantSeconds: 360,
     });
 
     await expectDatabaseError(
@@ -314,7 +314,7 @@ describe("daily recommendation schema", () => {
         restaurantId: restaurant.id,
         distanceGroup: "middle",
         distanceMeters: 1_200,
-        durationMinutes: 18,
+        campusToRestaurantSeconds: 1_080,
       }),
       /UNIQUE constraint failed: recommendations\.recommendation_category_id, recommendations\.restaurant_id/,
     );
