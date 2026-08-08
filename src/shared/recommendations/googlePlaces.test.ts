@@ -22,6 +22,18 @@ function createPlaceDetailsResponse(priceRange: unknown): Response {
   });
 }
 
+/**
+ * JSONとしてデコードできない成功レスポンスを生成する。
+ *
+ * @returns 不正なJSON本文を持つHTTP 200レスポンス。
+ */
+function createInvalidJsonResponse(): Response {
+  return new Response("{invalid-json", {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}
+
 describe("GooglePlacesClient", () => {
   it("Nearby Searchから徒歩経路候補を取得する", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
@@ -191,5 +203,29 @@ describe("GooglePlacesClient", () => {
 
   it("空のAPIキーを拒否する", () => {
     expect(() => new GooglePlacesClient(" ")).toThrow(GooglePlacesError);
+  });
+
+  it("Nearby SearchのJSONデコード失敗を専用エラーへ変換する", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(createInvalidJsonResponse());
+    const client = new GooglePlacesClient("server-api-key", fetchMock);
+
+    await expect(
+      client.searchNearby({ latitude: 35.681236, longitude: 139.767125 }, [
+        "ramen_restaurant",
+      ]),
+    ).rejects.toThrow(GooglePlacesError);
+  });
+
+  it("Place DetailsのJSONデコード失敗を専用エラーへ変換する", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(createInvalidJsonResponse());
+    const client = new GooglePlacesClient("server-api-key", fetchMock);
+
+    await expect(client.getPlaceDetails("place-a")).rejects.toThrow(
+      GooglePlacesError,
+    );
   });
 });

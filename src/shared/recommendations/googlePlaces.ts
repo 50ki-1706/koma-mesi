@@ -209,6 +209,25 @@ function parseGoogleResponse<T>(
 }
 
 /**
+ * Google PlacesのJSON本文を読み込み、デコード失敗を専用エラーへ変換する。
+ *
+ * @param response - Google Placesから受信したHTTPレスポンス。
+ * @param operationName - エラーメッセージに使用する操作名。
+ * @returns JSONとしてデコードした値。
+ * @throws {GooglePlacesError} レスポンス本文が正しいJSONでない場合。
+ */
+async function readGoogleResponseJson(
+  response: Response,
+  operationName: string,
+): Promise<unknown> {
+  try {
+    return (await response.json()) as unknown;
+  } catch {
+    throw new GooglePlacesError(`${operationName}の応答形式が不正です。`);
+  }
+}
+
+/**
  * 捕捉した値がfetchのタイムアウト例外か判定する。
  *
  * @param error - fetchから投げられた値。
@@ -314,7 +333,7 @@ export class GooglePlacesClient implements GooglePlacesGateway {
 
     const parsed = parseGoogleResponse(
       GoogleNearbySearchResponseSchema,
-      (await response.json()) as unknown,
+      await readGoogleResponseJson(response, "Nearby Search"),
       "Nearby Search",
     );
     if (
@@ -370,7 +389,7 @@ export class GooglePlacesClient implements GooglePlacesGateway {
 
     const place = parseGoogleResponse(
       GooglePlaceDetailsResponseSchema,
-      (await response.json()) as unknown,
+      await readGoogleResponseJson(response, "Place Details"),
       "Place Details",
     );
     return {
