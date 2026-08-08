@@ -3,13 +3,15 @@
  * 外部API呼び出しとDBトランザクションを分離し、生成処理をテスト可能にする。
  */
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import type { z } from "zod";
 import type { LunchRecommendationCategory } from "@/constants/recommendationGeneration";
+import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
 import type { db as applicationDb } from "@/db";
 import * as schema from "@/db/schema";
 import type {
   GenerateRecommendationsOutput,
+  GetRecommendationsOutput,
   RecommendationPriceRangeSchema,
 } from "@/shared/recommendations/schemas";
 import type { DistanceGroup } from "@/shared/recommendations/selection";
@@ -131,9 +133,37 @@ export interface RecommendationRepository {
   ): Promise<GenerateRecommendationsOutput>;
 }
 
+/** 保存済み推薦取得処理が利用する永続化境界。 */
+export interface RecommendationReadRepository {
+  /**
+   * ユーザーと対象日に一致する完了済み推薦を取得する。
+   *
+   * @param userId - Better AuthのユーザーID。
+   * @param targetDate - YYYY-MM-DD形式の対象日。
+   * @returns 完了済み推薦。存在しない場合はnull。
+   */
+  findCompletedRecommendation(
+    userId: string,
+    targetDate: string,
+  ): Promise<GetRecommendationsOutput>;
+}
+
+/** 日次Cronが利用する推薦対象ユーザー取得境界。 */
+export interface RecommendationCronRepository {
+  /**
+   * 完全な大学座標を登録済みのユーザーIDを取得する。
+   *
+   * @returns 推薦生成対象のユーザーID一覧。
+   */
+  findEligibleUserIds(): Promise<string[]>;
+}
+
 /** Drizzleを利用した推薦Repository。 */
 export class DrizzleRecommendationRepository
-  implements RecommendationRepository
+  implements
+    RecommendationRepository,
+    RecommendationReadRepository,
+    RecommendationCronRepository
 {
   private readonly database: RecommendationDatabase;
 
@@ -179,6 +209,25 @@ export class DrizzleRecommendationRepository
   }
 
   /**
+   * 完全な大学座標を登録済みのユーザーIDを取得する。
+   *
+   * @returns 推薦生成対象のユーザーID一覧。
+   */
+  async findEligibleUserIds(): Promise<string[]> {
+    const rows = await this.database
+      .select({ userId: schema.userPreferences.userId })
+      .from(schema.userPreferences)
+      .where(
+        and(
+          isNotNull(schema.userPreferences.campusLatitude),
+          isNotNull(schema.userPreferences.campusLongitude),
+        ),
+      );
+
+    return rows.map((row) => row.userId);
+  }
+
+  /**
    * ユーザーと対象日の既存バッチを取得する。
    *
    * @param userId - Better AuthのユーザーID。
@@ -203,6 +252,140 @@ export class DrizzleRecommendationRepository
       )
       .limit(1);
     return batch ?? null;
+  }
+
+  /**
+   * ユーザーと対象日に一致する完了済み推薦を取得する。
+   *
+   * @param userId - Better AuthのユーザーID。
+   * @param targetDate - YYYY-MM-DD形式の対象日。
+   * @returns 完了済み推薦。存在しない場合はnull。
+   */
+  async findCompletedRecommendation(
+    userId: string,
+    targetDate: string,
+  ): Promise<GetRecommendationsOutput> {
+    const [batch] = await this.database
+      .select({
+        id: schema.recommendationBatches.id,
+        targetDate: schema.recommendationBatches.targetDate,
+      })
+      .from(schema.recommendationBatches)
+      .where(
+        and(
+          eq(schema.recommendationBatches.userId, userId),
+          eq(schema.recommendationBatches.targetDate, targetDate),
+          eq(schema.recommendationBatches.status, "completed"),
+        ),
+      )
+      .limit(1);
+
+    if (batch === undefined) {
+      return null;
+    }
+
+    const rows = await this.database
+      .select({
+        categoryId: schema.recommendationCategories.id,
+        category: schema.recommendationCategories.category,
+        recommendationId: schema.recommendations.id,
+        distanceGroup: schema.recommendations.distanceGroup,
+        distanceMeters: schema.recommendations.distanceMeters,
+        campusToRestaurantSeconds:
+          schema.recommendations.campusToRestaurantSeconds,
+        restaurantId: schema.restaurants.id,
+        googlePlaceId: schema.restaurants.googlePlaceId,
+        name: schema.restaurants.name,
+        address: schema.restaurants.address,
+        latitude: schema.restaurants.latitude,
+        longitude: schema.restaurants.longitude,
+        currencyCode: schema.restaurantPriceRanges.currencyCode,
+        startPrice: schema.restaurantPriceRanges.startPrice,
+        endPrice: schema.restaurantPriceRanges.endPrice,
+      })
+      .from(schema.recommendationCategories)
+      .innerJoin(
+        schema.recommendations,
+        and(
+          eq(
+            schema.recommendations.recommendationCategoryId,
+            schema.recommendationCategories.id,
+          ),
+          eq(
+            schema.recommendations.batchId,
+            schema.recommendationCategories.batchId,
+          ),
+        ),
+      )
+      .innerJoin(
+        schema.restaurants,
+        eq(schema.restaurants.id, schema.recommendations.restaurantId),
+      )
+      .leftJoin(
+        schema.restaurantPriceRanges,
+        eq(schema.restaurantPriceRanges.restaurantId, schema.restaurants.id),
+      )
+      .where(eq(schema.recommendationCategories.batchId, batch.id))
+      .orderBy(
+        asc(schema.recommendationCategories.createdAt),
+        asc(schema.recommendationCategories.id),
+        asc(schema.recommendations.createdAt),
+        asc(schema.recommendations.id),
+      );
+
+    const categoriesById = new Map<
+      string,
+      NonNullable<GetRecommendationsOutput>["categories"][number]
+    >();
+    for (const row of rows) {
+      const category = categoriesById.get(row.categoryId) ?? {
+        id: row.categoryId,
+        category: row.category as LunchRecommendationCategory,
+        recommendations: [],
+      };
+      category.recommendations.push({
+        id: row.recommendationId,
+        distanceGroup: row.distanceGroup,
+        distanceMeters: row.distanceMeters,
+        campusToRestaurantSeconds: row.campusToRestaurantSeconds,
+        restaurant: {
+          id: row.restaurantId,
+          googlePlaceId: row.googlePlaceId,
+          name: row.name,
+          address: row.address,
+          latitude: row.latitude,
+          longitude: row.longitude,
+          priceRange:
+            row.currencyCode !== null && row.startPrice !== null
+              ? {
+                  currencyCode: row.currencyCode,
+                  startPrice: row.startPrice,
+                  endPrice: row.endPrice,
+                }
+              : null,
+        },
+      });
+      categoriesById.set(row.categoryId, category);
+    }
+
+    const distanceGroupOrder = new Map(
+      DISTANCE_GROUPS.map((distanceGroup, index) => [distanceGroup, index]),
+    );
+    const categories = [...categoriesById.values()];
+    for (const category of categories) {
+      category.recommendations.sort(
+        (left, right) =>
+          (distanceGroupOrder.get(left.distanceGroup) ?? 0) -
+          (distanceGroupOrder.get(right.distanceGroup) ?? 0),
+      );
+    }
+
+    return {
+      batchId: batch.id,
+      targetDate: batch.targetDate,
+      status: "completed",
+      categories,
+    };
   }
 
   /**

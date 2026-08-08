@@ -5,7 +5,7 @@
 import { call } from "@orpc/server";
 import { describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import type { GenerateRecommendationsOutput } from "@/shared/recommendations/schemas";
+import { createDailyRecommendationMock } from "@/shared/recommendations/mock";
 import type { ORPCContext } from "./context";
 import { router } from "./router";
 
@@ -13,39 +13,9 @@ const generateRecommendations = async () => {
   throw new Error("このテストでは推薦生成を呼び出しません。");
 };
 
-/**
- * 推薦生成procedureの正常レスポンスを生成する。
- *
- * @returns 3カテゴリ×3店舗のレスポンス。
- */
-function createRecommendationOutput(): GenerateRecommendationsOutput {
-  const categories = ["和食", "ラーメン", "カフェ・スイーツ"] as const;
-  const distanceGroups = ["near", "middle", "far"] as const;
-  return {
-    batchId: "batch-1",
-    targetDate: "2026-08-09",
-    status: "completed",
-    categories: categories.map((category, categoryIndex) => ({
-      id: `category-${categoryIndex}`,
-      category,
-      recommendations: distanceGroups.map((distanceGroup, index) => ({
-        id: `recommendation-${categoryIndex}-${index}`,
-        distanceGroup,
-        distanceMeters: (index + 1) * 200,
-        campusToRestaurantSeconds: (index + 1) * 120,
-        restaurant: {
-          id: `restaurant-${categoryIndex}-${index}`,
-          googlePlaceId: `place-${categoryIndex}-${index}`,
-          name: `店舗${categoryIndex}-${index}`,
-          address: "東京都千代田区1-1",
-          latitude: 35.681236,
-          longitude: 139.767125,
-          priceRange: null,
-        },
-      })),
-    })),
-  };
-}
+const getRecommendations = async () => {
+  throw new Error("このテストでは推薦取得を呼び出しません。");
+};
 
 const authenticatedSession = {
   session: {
@@ -72,7 +42,12 @@ const authenticatedSession = {
 describe("router.health", () => {
   it("正常状態を返す", async () => {
     const result = await call(router.health, undefined, {
-      context: { db, session: null, generateRecommendations },
+      context: {
+        db,
+        session: null,
+        generateRecommendations,
+        getRecommendations,
+      },
     });
 
     expect(result).toEqual({ ok: true });
@@ -81,7 +56,7 @@ describe("router.health", () => {
 
 describe("router.recommendation.generate", () => {
   it("ログインユーザーの日次推薦を生成して返す", async () => {
-    const generate = vi.fn(async () => createRecommendationOutput());
+    const generate = vi.fn(async () => createDailyRecommendationMock());
 
     const result = await call(
       router.recommendation.generate,
@@ -91,11 +66,12 @@ describe("router.recommendation.generate", () => {
           db,
           session: authenticatedSession,
           generateRecommendations: generate,
+          getRecommendations,
         },
       },
     );
 
-    expect(result).toEqual(createRecommendationOutput());
+    expect(result).toEqual(createDailyRecommendationMock());
     expect(generate).toHaveBeenCalledWith({
       userId: "user-1",
       targetDate: "2026-08-09",
@@ -103,7 +79,7 @@ describe("router.recommendation.generate", () => {
   });
 
   it("未ログインでは推薦を生成しない", async () => {
-    const generate = vi.fn(async () => createRecommendationOutput());
+    const generate = vi.fn(async () => createDailyRecommendationMock());
 
     await expect(
       call(
@@ -114,6 +90,7 @@ describe("router.recommendation.generate", () => {
             db,
             session: null,
             generateRecommendations: generate,
+            getRecommendations,
           },
         },
       ),
@@ -131,9 +108,74 @@ describe("router.recommendation.generate", () => {
             db,
             session: authenticatedSession,
             generateRecommendations,
+            getRecommendations,
           },
         },
       ),
     ).rejects.toThrow();
+  });
+});
+
+describe("router.recommendation.getDaily", () => {
+  it("ログインユーザーの保存済み日次推薦を返す", async () => {
+    const get = vi.fn(async () => createDailyRecommendationMock());
+
+    const result = await call(
+      router.recommendation.getDaily,
+      { targetDate: "2026-08-09" },
+      {
+        context: {
+          db,
+          session: authenticatedSession,
+          generateRecommendations,
+          getRecommendations: get,
+        },
+      },
+    );
+
+    expect(result).toEqual(createDailyRecommendationMock());
+    expect(get).toHaveBeenCalledWith({
+      userId: "user-1",
+      targetDate: "2026-08-09",
+    });
+  });
+
+  it("未生成の場合はnullを返す", async () => {
+    const get = vi.fn(async () => null);
+
+    await expect(
+      call(
+        router.recommendation.getDaily,
+        {},
+        {
+          context: {
+            db,
+            session: authenticatedSession,
+            generateRecommendations,
+            getRecommendations: get,
+          },
+        },
+      ),
+    ).resolves.toBeNull();
+  });
+
+  it("未ログインでは保存済み推薦を取得しない", async () => {
+    const get = vi.fn(async () => createDailyRecommendationMock());
+
+    await expect(
+      call(
+        router.recommendation.getDaily,
+        {},
+        {
+          context: {
+            db,
+            session: null,
+            generateRecommendations,
+            getRecommendations: get,
+          },
+        },
+      ),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    expect(get).not.toHaveBeenCalled();
   });
 });

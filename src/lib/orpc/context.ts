@@ -10,13 +10,25 @@ import {
   generateDailyRecommendations,
 } from "@/shared/recommendations/generate";
 import { GooglePlacesClient } from "@/shared/recommendations/googlePlaces";
+import {
+  type GetDailyRecommendationsCommand,
+  getDailyRecommendations,
+} from "@/shared/recommendations/read";
 import { DrizzleRecommendationRepository } from "@/shared/recommendations/repository";
-import type { GenerateRecommendationsOutput } from "@/shared/recommendations/schemas";
+import type {
+  GenerateRecommendationsOutput,
+  GetRecommendationsOutput,
+} from "@/shared/recommendations/schemas";
 
 /** 推薦生成procedureから呼び出すユースケース。 */
 export type RecommendationGenerator = (
   command: GenerateDailyRecommendationsCommand,
 ) => Promise<GenerateRecommendationsOutput>;
+
+/** 推薦取得procedureから呼び出すユースケース。 */
+export type RecommendationReader = (
+  command: GetDailyRecommendationsCommand,
+) => Promise<GetRecommendationsOutput>;
 
 /**
  * リクエストの認証情報、DB、推薦生成ユースケースをoRPCへ渡す。
@@ -28,23 +40,27 @@ export async function createORPCContext() {
     headers: await headers(),
   });
 
+  const repository = new DrizzleRecommendationRepository(db);
   const generateRecommendations: RecommendationGenerator = (command) => {
     const googlePlaces = new GooglePlacesClient(
       process.env.GOOGLE_MAPS_API_KEY ?? "",
     );
     return generateDailyRecommendations(
       {
-        repository: new DrizzleRecommendationRepository(db),
+        repository,
         googlePlaces,
       },
       command,
     );
   };
+  const getRecommendations: RecommendationReader = (command) =>
+    getDailyRecommendations({ repository }, command);
 
   return {
     db,
     session,
     generateRecommendations,
+    getRecommendations,
   };
 }
 

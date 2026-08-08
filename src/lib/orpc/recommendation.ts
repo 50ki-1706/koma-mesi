@@ -11,6 +11,8 @@ import {
 import {
   GenerateRecommendationsInputSchema,
   GenerateRecommendationsOutputSchema,
+  GetRecommendationsInputSchema,
+  GetRecommendationsOutputSchema,
 } from "@/shared/recommendations/schemas";
 import type { ORPCContext } from "./context";
 
@@ -37,6 +39,13 @@ function throwRecommendationError(error: unknown): never {
 
 /** ログインユーザーの対象日について3カテゴリ×3店舗を生成する。 */
 export const generateRecommendationsProcedure = base
+  .route({
+    method: "POST",
+    path: "/recommendations/generate",
+    operationId: "generateDailyRecommendations",
+    summary: "ログインユーザーの日次推薦を生成する",
+    tags: ["recommendations"],
+  })
   .input(GenerateRecommendationsInputSchema)
   .output(GenerateRecommendationsOutputSchema)
   .handler(async ({ context, input }) => {
@@ -58,7 +67,33 @@ export const generateRecommendationsProcedure = base
     }
   });
 
+/** ログインユーザーの対象日について保存済み推薦を取得する。 */
+export const getRecommendationsProcedure = base
+  .route({
+    method: "GET",
+    path: "/recommendations",
+    operationId: "getDailyRecommendations",
+    summary: "ログインユーザーの保存済み日次推薦を取得する",
+    tags: ["recommendations"],
+  })
+  .input(GetRecommendationsInputSchema)
+  .output(GetRecommendationsOutputSchema)
+  .handler(async ({ context, input }) => {
+    const userId = context.session?.user.id;
+    if (userId === undefined) {
+      throw new ORPCError("UNAUTHORIZED", {
+        message: "ログインが必要です。",
+      });
+    }
+
+    return context.getRecommendations({
+      userId,
+      targetDate: input.targetDate,
+    });
+  });
+
 /** 推薦関連procedureをまとめたルーター。 */
 export const recommendationRouter = {
   generate: generateRecommendationsProcedure,
+  getDaily: getRecommendationsProcedure,
 };

@@ -16,6 +16,9 @@ export const GenerateRecommendationsInputSchema = z.object({
   targetDate: z.iso.date().optional(),
 });
 
+/** 保存済み推薦取得APIの入力。日付を省略した場合は日本時間の当日を使用する。 */
+export const GetRecommendationsInputSchema = GenerateRecommendationsInputSchema;
+
 /** 推薦APIが返す料金レンジ。 */
 export const RecommendationPriceRangeSchema = z.object({
   currencyCode: z.string().length(3),
@@ -62,6 +65,10 @@ export const GenerateRecommendationsOutputSchema = z.object({
     .length(RECOMMENDATION_CATEGORY_COUNT),
 });
 
+/** 保存済み推薦取得APIのレスポンス。未生成の場合はnullを返す。 */
+export const GetRecommendationsOutputSchema =
+  GenerateRecommendationsOutputSchema.nullable();
+
 /** 推薦生成APIの入力型。 */
 export type GenerateRecommendationsInput = z.infer<
   typeof GenerateRecommendationsInputSchema
@@ -70,4 +77,14 @@ export type GenerateRecommendationsInput = z.infer<
 /** 推薦生成APIの正常レスポンス型。 */
 export type GenerateRecommendationsOutput = z.infer<
   typeof GenerateRecommendationsOutputSchema
+>;
+
+/** 保存済み推薦取得APIの入力型。 */
+export type GetRecommendationsInput = z.infer<
+  typeof GetRecommendationsInputSchema
+>;
+
+/** 保存済み推薦取得APIのレスポンス型。 */
+export type GetRecommendationsOutput = z.infer<
+  typeof GetRecommendationsOutputSchema
 >;
