@@ -111,4 +111,19 @@ describe("GooglePlacesClient", () => {
       ]),
     ).rejects.toThrow(GooglePlacesError);
   });
+
+  it("Google Placesのタイムアウトを専用エラーへ変換する", async () => {
+    const timeoutError = new DOMException("Timed out", "TimeoutError");
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockRejectedValue(timeoutError);
+    const client = new GooglePlacesClient("server-api-key", fetchMock);
+
+    await expect(
+      client.searchNearby({ latitude: 35.681236, longitude: 139.767125 }, [
+        "ramen_restaurant",
+      ]),
+    ).rejects.toThrow(GooglePlacesError);
+    expect(fetchMock.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
+  });
 });

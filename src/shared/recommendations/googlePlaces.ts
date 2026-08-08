@@ -6,6 +6,7 @@
 import { z } from "zod";
 import {
   GOOGLE_NEARBY_SEARCH_MAX_RESULTS,
+  GOOGLE_PLACES_REQUEST_TIMEOUT_MS,
   MAX_CAMPUS_TO_RESTAURANT_DISTANCE_METERS,
 } from "@/constants/recommendationGeneration";
 
@@ -207,6 +208,16 @@ function parseGoogleResponse<T>(
   return parsed.data;
 }
 
+/**
+ * 捕捉した値がfetchのタイムアウト例外か判定する。
+ *
+ * @param error - fetchから投げられた値。
+ * @returns TimeoutErrorならtrue。
+ */
+function isTimeoutError(error: unknown): boolean {
+  return error instanceof Error && error.name === "TimeoutError";
+}
+
 /** Google Places API（New）のHTTPクライアント。 */
 export class GooglePlacesClient implements GooglePlacesGateway {
   private readonly apiKey: string;
@@ -227,6 +238,33 @@ export class GooglePlacesClient implements GooglePlacesGateway {
   }
 
   /**
+   * タイムアウト付きでGoogle Placesへリクエストする。
+   *
+   * @param input - fetchのURLまたはRequest。
+   * @param init - fetchオプション。
+   * @param operationName - タイムアウト時に表示する操作名。
+   * @returns Google PlacesのHTTPレスポンス。
+   * @throws {GooglePlacesError} リクエストがタイムアウトした場合。
+   */
+  private async fetchWithTimeout(
+    input: RequestInfo | URL,
+    init: RequestInit,
+    operationName: string,
+  ): Promise<Response> {
+    try {
+      return await this.fetchImplementation(input, {
+        ...init,
+        signal: AbortSignal.timeout(GOOGLE_PLACES_REQUEST_TIMEOUT_MS),
+      });
+    } catch (error) {
+      if (isTimeoutError(error)) {
+        throw new GooglePlacesError(`${operationName}がタイムアウトしました。`);
+      }
+      throw error;
+    }
+  }
+
+  /**
    * 指定カテゴリに該当する店舗候補と大学からの徒歩経路を取得する。
    *
    * @param origin - 大学の座標。
@@ -237,7 +275,7 @@ export class GooglePlacesClient implements GooglePlacesGateway {
     origin: Coordinates,
     includedPrimaryTypes: readonly string[],
   ): Promise<NearbyRestaurantCandidate[]> {
-    const response = await this.fetchImplementation(
+    const response = await this.fetchWithTimeout(
       `${GOOGLE_PLACES_API_BASE_URL}/places:searchNearby`,
       {
         method: "POST",
@@ -265,6 +303,7 @@ export class GooglePlacesClient implements GooglePlacesGateway {
         }),
         cache: "no-store",
       },
+      "Nearby Search",
     );
 
     if (!response.ok) {
@@ -309,7 +348,7 @@ export class GooglePlacesClient implements GooglePlacesGateway {
    * @returns DBへ保存可能な店舗詳細。
    */
   async getPlaceDetails(googlePlaceId: string): Promise<GooglePlaceDetails> {
-    const response = await this.fetchImplementation(
+    const response = await this.fetchWithTimeout(
       `${GOOGLE_PLACES_API_BASE_URL}/places/${encodeURIComponent(googlePlaceId)}`,
       {
         headers: {
@@ -320,6 +359,7 @@ export class GooglePlacesClient implements GooglePlacesGateway {
         },
         cache: "no-store",
       },
+      "Place Details",
     );
 
     if (!response.ok) {

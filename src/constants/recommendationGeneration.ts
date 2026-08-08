@@ -6,6 +6,9 @@
 /** Nearby Searchで取得するカテゴリごとの最大候補数。 */
 export const GOOGLE_NEARBY_SEARCH_MAX_RESULTS = 20;
 
+/** Google Placesへの1リクエストで待機する最大時間（ms）。 */
+export const GOOGLE_PLACES_REQUEST_TIMEOUT_MS = 10_000;
+
 /** 大学から店舗までに許容する徒歩経路距離（m）。 */
 export const MAX_CAMPUS_TO_RESTAURANT_DISTANCE_METERS = 800;
 
