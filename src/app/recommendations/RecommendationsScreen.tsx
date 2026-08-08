@@ -5,6 +5,7 @@
 
 "use client";
 import Link from "next/link";
+import { useMemo } from "react";
 
 import { RecommendationCarousel } from "@/app/recommendations/RecommendationCarousel";
 import { RecommendationMap } from "@/app/recommendations/RecommendationMap";
@@ -31,6 +32,19 @@ export function RecommendationsScreen() {
     closeBottomSheet,
   } = useRecommendations();
   const universityLocation = useUniversityLocation();
+  const destination = useMemo<google.maps.LatLngLiteral | null>(() => {
+    if (currentItem === null) {
+      return null;
+    }
+    return {
+      lat: currentItem.recommendation.latitude,
+      lng: currentItem.recommendation.longitude,
+    };
+  }, [
+    currentItem,
+    currentItem?.recommendation.latitude,
+    currentItem?.recommendation.longitude,
+  ]);
 
   if (isLoading) {
     return (
@@ -104,14 +118,11 @@ export function RecommendationsScreen() {
         />
       </div>
 
-      {currentItem !== null ? (
+      {destination !== null ? (
         <div className="hidden min-h-0 flex-1 pt-2 lg:block">
           <RecommendationMap
             origin={universityLocation}
-            destination={{
-              lat: currentItem.recommendation.latitude,
-              lng: currentItem.recommendation.longitude,
-            }}
+            destination={destination}
           />
         </div>
       ) : null}
