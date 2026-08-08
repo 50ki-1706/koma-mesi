@@ -111,7 +111,7 @@ export function BottomSheet({
       />
       <section
         ref={sheetRef}
-        className="relative max-h-[85dvh] overflow-y-auto rounded-t-[1.75rem] border-t border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-24px_60px_oklch(0.45_0.08_70/0.16)] outline-none"
+        className="relative max-h-[85dvh] overflow-y-auto rounded-t-[1.75rem] border-t border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-24px_60px_oklch(0.45_0.08_70/0.16)] outline-none lg:mx-auto lg:mb-6 lg:w-[min(36rem,calc(100%-3rem))] lg:rounded-[1.75rem] lg:border"
         aria-label={title === undefined ? "詳細" : undefined}
         aria-labelledby={title !== undefined ? "bottom-sheet-title" : undefined}
         aria-modal="true"

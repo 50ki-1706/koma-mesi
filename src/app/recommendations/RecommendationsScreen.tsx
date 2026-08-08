@@ -28,10 +28,13 @@ export function RecommendationsScreen() {
     currentIndex,
     currentItem,
     isBottomSheetOpen,
+    isMobileMapVisible,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,
     closeBottomSheet,
+    showMobileMap,
+    hideMobileMap,
   } = useRecommendations();
   const universityLocation = useUniversityLocation();
   const isDesktopViewport = useMediaQuery(LG_BREAKPOINT_QUERY);
@@ -112,13 +115,29 @@ export function RecommendationsScreen() {
           </Link>
         </header>
 
-        <RecommendationCarousel
-          currentIndex={currentIndex}
-          items={items}
-          onSelectCard={openBottomSheet}
-          onSwipeNext={handleSwipeNext}
-          onSwipePrevious={handleSwipePrevious}
-        />
+        {isMobileMapVisible && !isDesktopViewport && destination !== null ? (
+          <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-line/80 bg-surface shadow-[0_24px_80px_oklch(0.45_0.08_70/0.16)]">
+            <RecommendationMap
+              origin={universityLocation}
+              destination={destination}
+            />
+            <button
+              className="absolute inset-x-4 bottom-4 h-11 rounded-xl bg-surface/95 px-5 text-sm font-black text-ink shadow-[0_8px_24px_oklch(0.27_0.035_67/0.2)] backdrop-blur-sm transition hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
+              type="button"
+              onClick={hideMobileMap}
+            >
+              店舗カードに戻る
+            </button>
+          </div>
+        ) : (
+          <RecommendationCarousel
+            currentIndex={currentIndex}
+            items={items}
+            onSelectCard={openBottomSheet}
+            onSwipeNext={handleSwipeNext}
+            onSwipePrevious={handleSwipePrevious}
+          />
+        )}
       </div>
 
       {destination !== null && isDesktopViewport ? (
@@ -136,14 +155,77 @@ export function RecommendationsScreen() {
         onClose={closeBottomSheet}
       >
         {currentItem !== null ? (
-          <a
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-black text-ink shadow-[0_8px_20px_oklch(0.65_0.15_75/0.22)] transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
-            href={currentItem.recommendation.platformUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            グルメサイトで見る
-          </a>
+          <div>
+            <div className="lg:hidden">
+              <div className="mb-5 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-brand-soft p-4">
+                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
+                    WALK
+                  </p>
+                  <p className="text-lg font-black text-ink">
+                    {currentItem.recommendation.durationMinutes}分
+                  </p>
+                  <p className="mt-1 text-xs text-ink-muted">
+                    大学から {currentItem.recommendation.distanceMeters}m
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-surface-muted p-4">
+                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-ink-muted">
+                    BUDGET
+                  </p>
+                  <p className="text-lg font-black text-ink">
+                    約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <p className="mb-2 text-xs font-black text-ink">お店の写真</p>
+              {/* biome-ignore lint/performance/noImgElement: 外部の飲食店写真URLを表示するため next/image のドメイン許可設定を避ける */}
+              <img
+                className="mb-5 h-32 w-full rounded-2xl object-cover"
+                src={currentItem.recommendation.photoUrl}
+                alt={`${currentItem.recommendation.name}の店内・料理写真`}
+              />
+
+              <button
+                className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
+                type="button"
+                onClick={showMobileMap}
+              >
+                マップを表示する
+              </button>
+            </div>
+
+            <div className="hidden lg:block">
+              <div className="mb-5 flex gap-3">
+                <div className="flex-1 rounded-2xl bg-brand-soft p-4">
+                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
+                    WALK
+                  </p>
+                  <p className="font-black text-ink">
+                    {currentItem.recommendation.durationMinutes}分
+                    <span className="ml-2 text-xs font-medium text-ink-muted">
+                      大学から {currentItem.recommendation.distanceMeters}m
+                    </span>
+                  </p>
+                </div>
+                <div className="flex-1 rounded-2xl bg-surface-muted p-4">
+                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-ink-muted">
+                    BUDGET
+                  </p>
+                  <p className="font-black text-ink">
+                    約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <p className="mb-2 text-xs font-black text-ink">お店の写真</p>
+              {/* biome-ignore lint/performance/noImgElement: 外部の飲食店写真URLを表示するため next/image のドメイン許可設定を避ける */}
+              <img
+                className="mb-5 h-36 w-full rounded-2xl object-cover"
+                src={currentItem.recommendation.photoUrl}
+                alt={`${currentItem.recommendation.name}の店内・料理写真`}
+              />
+            </div>
+          </div>
         ) : null}
       </BottomSheet>
     </main>

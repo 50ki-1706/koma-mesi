@@ -1,6 +1,6 @@
 /**
  * 飲食店レコメンドページのデータ取得と表示状態を管理する。
- * ジャンルの切り替え（スワイプ）とボトムシートの開閉を提供する。
+ * ジャンルの切り替えと、ボトムシート・モバイル地図の表示状態を提供する。
  */
 
 "use client";
@@ -102,23 +102,26 @@ export interface RecommendationsController {
   currentIndex: number;
   currentItem: FeaturedRecommendation | null;
   isBottomSheetOpen: boolean;
+  isMobileMapVisible: boolean;
   handleSwipeNext: () => void;
   handleSwipePrevious: () => void;
   openBottomSheet: () => void;
   closeBottomSheet: () => void;
+  showMobileMap: () => void;
+  hideMobileMap: () => void;
 }
 
 /**
  * ジャンルごとのおすすめ店データを取得し、表示状態を返す。
  *
- * @returns 取得結果、現在表示中のジャンルindex、ボトムシートの開閉操作。
- */
+ * @returns 取得結果、現在位置、ボトムシートとモバイル地図の表示操作。 */
 export function useRecommendations(): RecommendationsController {
   const [items, setItems] = useState<FeaturedRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isMobileMapVisible, setIsMobileMapVisible] = useState(false);
 
   useEffect(() => {
     // TODO: 表示確認用の一時的なデモデータ表示。DB投入後は元に戻す:
@@ -174,6 +177,25 @@ export function useRecommendations(): RecommendationsController {
     setIsBottomSheetOpen(false);
   };
 
+  /**
+   * ボトムシートを閉じ、店舗カードの位置にモバイル用地図を表示する。
+   *
+   * @returns なし。
+   */
+  const showMobileMap = (): void => {
+    setIsBottomSheetOpen(false);
+    setIsMobileMapVisible(true);
+  };
+
+  /**
+   * モバイル用地図を閉じ、店舗カードへ戻す。
+   *
+   * @returns なし。
+   */
+  const hideMobileMap = (): void => {
+    setIsMobileMapVisible(false);
+  };
+
   return {
     isLoading,
     errorMessage,
@@ -181,9 +203,12 @@ export function useRecommendations(): RecommendationsController {
     currentIndex,
     currentItem: items[currentIndex] ?? null,
     isBottomSheetOpen,
+    isMobileMapVisible,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,
     closeBottomSheet,
+    showMobileMap,
+    hideMobileMap,
   };
 }
