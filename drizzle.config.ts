@@ -1,3 +1,8 @@
+/**
+ * Drizzle Kit configuration for the SQLite schema and migration output.
+ * Uses DATABASE_URL or the shared local database fallback.
+ */
+
 import { defineConfig } from "drizzle-kit";
 import { DEFAULT_DATABASE_URL } from "./src/constants/database";
 
