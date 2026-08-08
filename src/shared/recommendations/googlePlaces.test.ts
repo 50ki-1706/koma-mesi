@@ -6,6 +6,22 @@
 import { describe, expect, it, vi } from "vitest";
 import { GooglePlacesClient, GooglePlacesError } from "./googlePlaces";
 
+/**
+ * 料金レンジだけを差し替えたPlace Detailsレスポンスを生成する。
+ *
+ * @param priceRange - Google API形式の料金レンジ。
+ * @returns fetchスタブで返すHTTPレスポンス。
+ */
+function createPlaceDetailsResponse(priceRange: unknown): Response {
+  return Response.json({
+    id: "place-a",
+    displayName: { text: "麺屋テスト" },
+    formattedAddress: "東京都千代田区1-1",
+    location: { latitude: 35.681236, longitude: 139.767125 },
+    priceRange,
+  });
+}
+
 describe("GooglePlacesClient", () => {
   it("Nearby Searchから徒歩経路候補を取得する", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
@@ -125,5 +141,57 @@ describe("GooglePlacesClient", () => {
       ]),
     ).rejects.toThrow(GooglePlacesError);
     expect(fetchMock.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it.each([
+    {
+      name: "小数を含む開始価格",
+      priceRange: {
+        startPrice: { currencyCode: "JPY", units: "800", nanos: 1 },
+      },
+      expected: null,
+    },
+    {
+      name: "通貨コードが異なる終了価格",
+      priceRange: {
+        startPrice: { currencyCode: "JPY", units: "800", nanos: 0 },
+        endPrice: { currencyCode: "USD", units: "1200", nanos: 0 },
+      },
+      expected: { currencyCode: "JPY", startPrice: 800, endPrice: null },
+    },
+    {
+      name: "開始価格以下の終了価格",
+      priceRange: {
+        startPrice: { currencyCode: "JPY", units: "800", nanos: 0 },
+        endPrice: { currencyCode: "JPY", units: "800", nanos: 0 },
+      },
+      expected: { currencyCode: "JPY", startPrice: 800, endPrice: null },
+    },
+  ])("$nameを保存可能な料金へ変換する", async ({ priceRange, expected }) => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(createPlaceDetailsResponse(priceRange));
+    const client = new GooglePlacesClient("server-api-key", fetchMock);
+
+    await expect(client.getPlaceDetails("place-a")).resolves.toMatchObject({
+      priceRange: expected,
+    });
+  });
+
+  it("HTTPエラーレスポンスを専用エラーとして拒否する", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(null, { status: 503 }));
+    const client = new GooglePlacesClient("server-api-key", fetchMock);
+
+    await expect(
+      client.searchNearby({ latitude: 35.681236, longitude: 139.767125 }, [
+        "ramen_restaurant",
+      ]),
+    ).rejects.toThrow(GooglePlacesError);
+  });
+
+  it("空のAPIキーを拒否する", () => {
+    expect(() => new GooglePlacesClient(" ")).toThrow(GooglePlacesError);
   });
 });
