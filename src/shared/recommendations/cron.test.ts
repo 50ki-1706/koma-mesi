@@ -13,6 +13,8 @@ import { createDailyRecommendationMock } from "./mock";
 
 describe("runDailyRecommendationCron", () => {
   it("生成済みユーザーを飛ばし、成功と失敗を集計する", async () => {
+    const logger = { error: vi.fn() };
+    const generationError = new Error("Google API error");
     const generateRecommendations = vi.fn(async ({ userId }) => {
       if (userId === "user-skipped") {
         throw new RecommendationGenerationError(
@@ -21,7 +23,7 @@ describe("runDailyRecommendationCron", () => {
         );
       }
       if (userId === "user-failed") {
-        throw new Error("Google API error");
+        throw generationError;
       }
       return createDailyRecommendationMock("2026-08-09");
     });
@@ -35,6 +37,7 @@ describe("runDailyRecommendationCron", () => {
         ]),
       },
       generateRecommendations,
+      logger,
       now: () => new Date("2026-08-09T02:00:00Z"),
     });
 
@@ -46,6 +49,10 @@ describe("runDailyRecommendationCron", () => {
       failedUsers: 1,
     });
     expect(generateRecommendations).toHaveBeenCalledTimes(3);
+    expect(logger.error).toHaveBeenCalledWith(
+      "日次推薦生成に失敗しました。",
+      { userId: "user-failed", error: generationError },
+    );
   });
 });
 

@@ -22,7 +22,22 @@ export type DailyRecommendationGenerator = (
 export interface RunDailyRecommendationCronDependencies {
   repository: RecommendationCronRepository;
   generateRecommendations: DailyRecommendationGenerator;
+  logger?: RecommendationCronLogger;
   now?: () => Date;
+}
+
+/** Cronのユーザー単位エラーを記録する最小ロガー契約。 */
+export interface RecommendationCronLogger {
+  /**
+   * 推薦生成に失敗したユーザーと原因を記録する。
+   *
+   * @param message - ログの概要。
+   * @param details - 対象ユーザーと捕捉したエラー。
+   */
+  error(
+    message: string,
+    details: { userId: string; error: unknown },
+  ): void;
 }
 
 /** Cron Route Handlerの依存関係。 */
@@ -75,6 +90,10 @@ export async function runDailyRecommendationCron(
       ) {
         skippedUsers += 1;
       } else {
+        (dependencies.logger ?? console).error(
+          "日次推薦生成に失敗しました。",
+          { userId, error },
+        );
         failedUsers += 1;
       }
     }
