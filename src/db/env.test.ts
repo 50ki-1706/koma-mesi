@@ -43,6 +43,12 @@ describe("resolveDatabaseCredentials", () => {
     expect(resolveDatabaseCredentials(env)).toEqual({ url: "file:local.db" });
   });
 
+  it("returns the local SQLite file when VERCEL_ENV is empty", () => {
+    expect(resolveDatabaseCredentials({ VERCEL_ENV: "" })).toEqual({
+      url: "file:local.db",
+    });
+  });
+
   it("throws when production URL is missing", () => {
     const env = {
       VERCEL_ENV: "production",
