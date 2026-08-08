@@ -15,7 +15,7 @@ CREATE TABLE `__new_recommendations` (
 	CONSTRAINT "recommendations_campus_to_restaurant_seconds_check" CHECK("__new_recommendations"."campus_to_restaurant_seconds" >= 0)
 );
 --> statement-breakpoint
-INSERT INTO `__new_recommendations`("id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "campus_to_restaurant_seconds", "created_at") SELECT "id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "duration_minutes", "created_at" FROM `recommendations`;--> statement-breakpoint
+INSERT INTO `__new_recommendations`("id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "campus_to_restaurant_seconds", "created_at") SELECT "id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "duration_minutes" * 60, "created_at" FROM `recommendations`;--> statement-breakpoint
 DROP TABLE `recommendations`;--> statement-breakpoint
 ALTER TABLE `__new_recommendations` RENAME TO `recommendations`;--> statement-breakpoint
 PRAGMA foreign_keys=ON;--> statement-breakpoint
