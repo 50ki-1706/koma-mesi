@@ -149,6 +149,54 @@
           "store_path": "/nix/store/q5a7ifamw5c6c9llfdj8h487qz4rasr9-pnpm-11.1.2"
         }
       }
+    },
+    "turso-cli@1.0.27": {
+      "last_modified": "2026-06-11T10:33:09Z",
+      "resolved": "github:NixOS/nixpkgs/8c91a71d13451abc40eb9dae8910f972f979852f#turso-cli",
+      "source": "devbox-search",
+      "version": "1.0.27",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/iqmk0bjji405cp3jmbwfw49ap07kmp2s-turso-cli-1.0.27",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/iqmk0bjji405cp3jmbwfw49ap07kmp2s-turso-cli-1.0.27"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9vzllp32gxag731zhrjn76708x841inc-turso-cli-1.0.27",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9vzllp32gxag731zhrjn76708x841inc-turso-cli-1.0.27"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/z74dqllndbc8q5aj7k2vsyqvk63mxjh1-turso-cli-1.0.27",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/z74dqllndbc8q5aj7k2vsyqvk63mxjh1-turso-cli-1.0.27"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/crfncw45b3ddlzdxxy5rgw9v8j2k1wg0-turso-cli-1.0.27",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/crfncw45b3ddlzdxxy5rgw9v8j2k1wg0-turso-cli-1.0.27"
+        }
+      }
     }
   }
 }
