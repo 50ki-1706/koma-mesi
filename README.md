@@ -1,12 +1,16 @@
-# next-starter
-
-[日本語](./README.ja.md)
+# koma-mesi
 
 [![Built with Devbox](https://www.jetify.com/img/devbox/shield_galaxy.svg)](https://www.jetify.com/devbox/docs/contributor-quickstart/)
+[日本語](./README.ja.md)
 
-A starter template for building full-stack applications with Next.js. It includes the tools and configuration needed for the development environment, authentication, database, testing, and more.
+koma-mesi is a **lunch matching app** designed to help university students make the most of their limited lunch break time — efficiently and enjoyably.
 
-## Key Features
+## How to Use
+
+1. Register your university's location.
+2. Based on the registered location, the backend researches restaurants you can visit during your lunch break before it starts.
+3. When lunch break begins, open the app and choose from the researched restaurants!
+4. Enjoy an efficient and fun lunch break!
 
 ### Runtime and Development Environment
 
@@ -14,7 +18,7 @@ A starter template for building full-stack applications with Next.js. It include
 - [pnpm 11.1.2](https://pnpm.io/) — Fast, efficient package manager
 - [cocogitto 7.0.0](https://docs.cocogitto.io/) — Git hook tool for validating commit messages
 - [Devbox](https://www.jetify.com/devbox/) — Toolchain manager for reproducible development environments
-- [Dev Containers](https://containers.dev/) — A way to use containerized development environments in VS Code
+- [Dev Containers](https://containers.dev/) — Containerized development environments for VS Code
 - [SQLite](https://www.sqlite.org/index.html) — Lightweight embedded SQL database
 
 ### Frameworks and Libraries
@@ -42,26 +46,3 @@ See the setup guide for your operating system:
 | macOS | [docs/setup/mac/README.md](./docs/setup/mac/README.md) |
 | Linux | [docs/setup/linux/README.md](./docs/setup/linux/README.md) |
 | Windows (WSL2) | [docs/setup/windows/README.md](./docs/setup/windows/README.md) |
-
-### Prerequisites
-
-- [Git](https://git-scm.com/)
-- [Devbox](https://www.jetify.com/devbox/docs/installing-devbox/)
-
-> [!NOTE]
-> The Devbox CLI does not run directly on Windows. Use WSL2 or a Dev Container instead.
-
-## TypeScript 7
-
-This template uses the native TypeScript 7 compiler. Next.js 16.3 runs the project-local `tsc` CLI during production builds by default, so no additional configuration is required.
-
-Run type checking independently with the following command.
-
-```bash
-pnpm typecheck
-```
-
-The Next.js CLI integration is experimental and reports native `tsc` diagnostics. It checks the complete project selected by `tsconfig.json`, including test files and generated Next.js types when they are included.
-
-> [!NOTE]
-> TypeScript 7.0 does not provide a stable JavaScript Compiler API. Before adding tools that import TypeScript programmatically, confirm their TypeScript 7 compatibility. The Storybook configuration included in this template is verified by `pnpm build-storybook`.
