@@ -47,5 +47,5 @@ CREATE TABLE `__new_recommendations` (
 INSERT INTO `__new_recommendations`("id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "created_at") SELECT "id", "batch_id", "recommendation_category_id", "restaurant_id", "distance_group", "distance_meters", "created_at" FROM `recommendations`;--> statement-breakpoint
 DROP TABLE `recommendations`;--> statement-breakpoint
 ALTER TABLE `__new_recommendations` RENAME TO `recommendations`;--> statement-breakpoint
-CREATE UNIQUE INDEX `recommendations_category_id_distance_group_unique` ON `recommendations` (`recommendation_category_id`,`distance_group`);
+CREATE UNIQUE INDEX `recommendations_category_id_distance_group_unique` ON `recommendations` (`recommendation_category_id`,`distance_group`);--> statement-breakpoint
 PRAGMA foreign_keys=ON;--> statement-breakpoint

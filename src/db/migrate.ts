@@ -11,21 +11,9 @@ import { type Client, createClient } from "@libsql/client";
 import { sql } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { drizzle } from "drizzle-orm/libsql";
-import type { LibSQLSession } from "drizzle-orm/libsql/session";
 import { type MigrationConfig, readMigrationFiles } from "drizzle-orm/migrator";
-import type { ExtractTablesWithRelations } from "drizzle-orm/relations";
 import { DEFAULT_DATABASE_URL } from "@/constants/database";
 import * as schema from "./schema";
-
-/**
- * LibSQLDatabaseの内部sessionプロパティにアクセスするための型。
- * drizzle-ormの公開型からはsessionが隠蔽されているが、マイグレーション実行には必要なため
- * 実行時キャストに使用する。
- */
-type LibSQLDatabaseWithSession<TSchema extends Record<string, unknown>> =
-  LibSQLDatabase<TSchema> & {
-    session: LibSQLSession<TSchema, ExtractTablesWithRelations<TSchema>>;
-  };
 
 /**
  * 実行対象となるSQLセグメントかどうかを判定する。
@@ -66,8 +54,6 @@ export async function migrateWithEmptyStatementsFiltered<
   );
   const lastDbMigration = dbMigrations[0] ?? undefined;
 
-  const statementsToBatch = [];
-
   for (const migration of migrations) {
     if (
       !lastDbMigration ||
@@ -75,20 +61,14 @@ export async function migrateWithEmptyStatementsFiltered<
     ) {
       for (const statement of migration.sql) {
         if (isExecutableStatement(statement)) {
-          statementsToBatch.push(db.run(sql.raw(statement)));
+          await db.run(sql.raw(statement));
         }
       }
-      statementsToBatch.push(
-        db.run(
-          sql`INSERT INTO ${sql.identifier(migrationsTable)} ("hash", "created_at") VALUES(${migration.hash}, ${migration.folderMillis})`,
-        ),
+      await db.run(
+        sql`INSERT INTO ${sql.identifier(migrationsTable)} ("hash", "created_at") VALUES(${migration.hash}, ${migration.folderMillis})`,
       );
     }
   }
-
-  await (db as LibSQLDatabaseWithSession<TSchema>).session.migrate(
-    statementsToBatch,
-  );
 }
 
 /** Options for running migrations */

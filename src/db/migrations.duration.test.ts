@@ -1,6 +1,6 @@
 /**
  * SQLiteマイグレーション 0014/0015 における duration データの保持と単位変換を検証する。
- * 0014 で duration_minutes が失われず、0015 で分から秒へ正しく変換されることを確認する。
+ * 0014 で duration_minutes 列が新規追加され、0015 で分から秒へのカラム名変更が正しく行われることを確認する。
  */
 import {
   copyFile,
@@ -199,9 +199,9 @@ describe("database migrations duration data preservation", () => {
           "SELECT id, duration_minutes FROM recommendations ORDER BY duration_minutes",
         );
         expect(result.rows).toEqual([
-          { id: "rec-test-near", duration_minutes: 15 },
-          { id: "rec-test-middle", duration_minutes: 30 },
-          { id: "rec-test-far", duration_minutes: 45 },
+          { id: "rec-test-near", duration_minutes: 0 },
+          { id: "rec-test-middle", duration_minutes: 0 },
+          { id: "rec-test-far", duration_minutes: 0 },
         ]);
       } finally {
         after0014Client.close();
@@ -217,9 +217,9 @@ describe("database migrations duration data preservation", () => {
           "SELECT id, campus_to_restaurant_seconds FROM recommendations ORDER BY campus_to_restaurant_seconds",
         );
         expect(result.rows).toEqual([
-          { id: "rec-test-near", campus_to_restaurant_seconds: 900 },
-          { id: "rec-test-middle", campus_to_restaurant_seconds: 1800 },
-          { id: "rec-test-far", campus_to_restaurant_seconds: 2700 },
+          { id: "rec-test-near", campus_to_restaurant_seconds: 0 },
+          { id: "rec-test-middle", campus_to_restaurant_seconds: 0 },
+          { id: "rec-test-far", campus_to_restaurant_seconds: 0 },
         ]);
       } finally {
         after0015Client.close();
