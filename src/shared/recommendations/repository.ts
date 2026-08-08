@@ -5,7 +5,10 @@
 
 import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import type { z } from "zod";
-import type { LunchRecommendationCategory } from "@/constants/recommendationGeneration";
+import {
+  LUNCH_RECOMMENDATION_CATEGORIES,
+  type LunchRecommendationCategory,
+} from "@/constants/recommendationGeneration";
 import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
 import type { db as applicationDb } from "@/db";
 import * as schema from "@/db/schema";
@@ -16,6 +19,25 @@ import type {
 } from "@/shared/recommendations/schemas";
 import type { DistanceGroup } from "@/shared/recommendations/selection";
 import type { GooglePlaceDetails } from "./googlePlaces";
+
+/**
+ * DBから取得したカテゴリ文字列を業務上許可された値へ絞り込む。
+ *
+ * @param value - DBに保存されていたカテゴリ値。
+ * @returns 検証済みの昼食カテゴリ。
+ * @throws {Error} 未定義のカテゴリ値が保存されている場合。
+ */
+function parseLunchRecommendationCategory(
+  value: string,
+): LunchRecommendationCategory {
+  const category = LUNCH_RECOMMENDATION_CATEGORIES.find(
+    (candidate) => candidate === value,
+  );
+  if (category === undefined) {
+    throw new Error(`不正な推薦カテゴリが保存されています: ${value}`);
+  }
+  return category;
+}
 
 /** アプリケーションで使用するDrizzle DBクライアント。 */
 export type RecommendationDatabase = typeof applicationDb;
@@ -340,7 +362,7 @@ export class DrizzleRecommendationRepository
     for (const row of rows) {
       const category = categoriesById.get(row.categoryId) ?? {
         id: row.categoryId,
-        category: row.category as LunchRecommendationCategory,
+        category: parseLunchRecommendationCategory(row.category),
         recommendations: [],
       };
       category.recommendations.push({
@@ -618,7 +640,7 @@ export class DrizzleRecommendationRepository
 
         categories.push({
           id: category.id,
-          category: category.category as LunchRecommendationCategory,
+          category: parseLunchRecommendationCategory(category.category),
           recommendations,
         });
       }
