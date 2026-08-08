@@ -95,7 +95,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
 ];
 
 /** レコメンドページの表示状態と操作をまとめたコントローラー。 */
+/**
+ * おすすめ画面の表示状態と操作を提供する。
+ */
 export interface RecommendationsController {
+  /** モバイル viewport で地図ビューを表示しているか。 */
   isLoading: boolean;
   errorMessage: string | null;
   items: FeaturedRecommendation[];
