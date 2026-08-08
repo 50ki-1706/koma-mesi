@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `recommendations_category_id_restaurant_id_unique` ON `recommendations` (`recommendation_category_id`,`restaurant_id`);
