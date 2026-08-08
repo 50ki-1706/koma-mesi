@@ -8,7 +8,7 @@
 import type { PointerEvent } from "react";
 import { useRef } from "react";
 import { RecommendationCard } from "@/app/recommendations/RecommendationCard";
-import { SWIPE_THRESHOLD_PX } from "@/constants/recommendations";
+import { SWIPE_THRESHOLD_PX } from "@/constants/gestures";
 import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
 
 interface RecommendationCarouselProps {
@@ -17,6 +17,50 @@ interface RecommendationCarouselProps {
   onSwipeNext: () => void;
   onSwipePrevious: () => void;
   onSelectCard: () => void;
+}
+
+interface EdgeNavigationButtonProps {
+  direction: "previous" | "next";
+  onNavigate: () => void;
+}
+
+/**
+ * カード端に、前後の店舗へ移動するタップ領域を表示する。
+ *
+ * @param props - 移動方向と実行する操作。
+ * @returns カード端のナビゲーションボタン。
+ */
+function EdgeNavigationButton({
+  direction,
+  onNavigate,
+}: EdgeNavigationButtonProps) {
+  const isPrevious = direction === "previous";
+
+  return (
+    <button
+      className={`absolute inset-y-0 z-10 flex w-16 items-center px-3 text-surface opacity-80 transition hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-focus sm:w-20 ${
+        isPrevious
+          ? "left-0 justify-start bg-[linear-gradient(to_right,oklch(0.16_0.025_60/0.32),transparent)]"
+          : "right-0 justify-end bg-[linear-gradient(to_left,oklch(0.16_0.025_60/0.32),transparent)]"
+      }`}
+      type="button"
+      aria-label={isPrevious ? "前の店舗を表示" : "次の店舗を表示"}
+      onClick={(event) => {
+        event.stopPropagation();
+        onNavigate();
+      }}
+    >
+      <svg
+        className={`size-7 fill-none stroke-current stroke-[2.5] drop-shadow-md ${
+          isPrevious ? "" : "rotate-180"
+        }`}
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="m15 5-7 7 7 7" />
+      </svg>
+    </button>
+  );
 }
 
 /**
@@ -45,6 +89,7 @@ export function RecommendationCarousel({
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>): void => {
     startXRef.current = event.clientX;
     didSwipeRef.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   /**
@@ -63,10 +108,10 @@ export function RecommendationCarousel({
     const deltaX = event.clientX - startX;
     if (deltaX >= SWIPE_THRESHOLD_PX) {
       didSwipeRef.current = true;
-      onSwipeNext();
+      onSwipePrevious();
     } else if (deltaX <= -SWIPE_THRESHOLD_PX) {
       didSwipeRef.current = true;
-      onSwipePrevious();
+      onSwipeNext();
     }
   };
 
@@ -100,12 +145,17 @@ export function RecommendationCarousel({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div
-        className="min-h-0 flex-1 touch-pan-y"
+        className="relative min-h-0 flex-1 touch-pan-y select-none"
         onPointerCancel={handlePointerCancel}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
         <RecommendationCard item={currentItem} onSelect={handleSelectCard} />
+        <EdgeNavigationButton
+          direction="previous"
+          onNavigate={onSwipePrevious}
+        />
+        <EdgeNavigationButton direction="next" onNavigate={onSwipeNext} />
       </div>
       <div className="mt-4 flex shrink-0 items-center justify-center gap-1.5">
         {items.map((item, index) => (

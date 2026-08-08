@@ -86,7 +86,7 @@ export function RecommendationsScreen() {
 
   return (
     <main
-      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 text-ink sm:p-6 lg:flex-row lg:gap-6"
+      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 pb-32 text-ink sm:p-6 sm:pb-32 lg:flex-row lg:gap-6 lg:pb-32"
       aria-label="おすすめの飲食店"
     >
       <div className="flex min-h-0 flex-1 flex-col lg:max-w-md">
@@ -152,6 +152,7 @@ export function RecommendationsScreen() {
       <BottomSheet
         isOpen={isBottomSheetOpen}
         title={currentItem?.recommendation.name}
+        onOpen={openBottomSheet}
         onClose={closeBottomSheet}
       >
         {currentItem !== null ? (
