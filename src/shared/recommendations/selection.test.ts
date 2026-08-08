@@ -10,6 +10,7 @@ import type {
   NearbyRestaurantCandidate,
 } from "./googlePlaces";
 import {
+  InsufficientRecommendationCandidatesError,
   selectDailyRecommendations,
   selectRestaurantsForCategory,
   splitCandidatesByDistance,
@@ -137,5 +138,28 @@ describe("selectDailyRecommendations", () => {
     expect(new Set(selections.map((item) => item.category))).toHaveLength(3);
     expect(searchedPrimaryTypes).toHaveLength(4);
     expect(searchedPrimaryTypes.every((types) => types.length > 0)).toBe(true);
+  });
+
+  it("全カテゴリで候補が不足した場合は固定メッセージの例外を返す", async () => {
+    const gateway: GooglePlacesGateway = {
+      searchNearby: vi.fn(async () => [
+        createCandidate("only-1", 100),
+        createCandidate("only-2", 200),
+      ]),
+      getPlaceDetails: vi.fn(async (): Promise<GooglePlaceDetails> => {
+        throw new Error("選定テストでは呼び出しません。");
+      }),
+    };
+
+    await expect(
+      selectDailyRecommendations(
+        gateway,
+        { latitude: 35.681236, longitude: 139.767125 },
+        () => 0,
+      ),
+    ).rejects.toEqual(
+      new InsufficientRecommendationCandidatesError(),
+    );
+    expect(gateway.searchNearby).toHaveBeenCalledTimes(11);
   });
 });
