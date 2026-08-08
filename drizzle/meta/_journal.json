@@ -71,6 +71,13 @@
       "when": 1786157895519,
       "tag": "0009_perpetual_red_shift",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786158147364,
+      "tag": "0010_useful_wind_dancer",
+      "breakpoints": true
     }
   ]
 }

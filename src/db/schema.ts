@@ -128,7 +128,7 @@ export const recommendationBatches = sqliteTable(
     ),
     check(
       "recommendation_batches_status_check",
-      inArray(table.status, RECOMMENDATION_BATCH_STATUSES).inlineParams(),
+      inArray(table.status, RECOMMENDATION_BATCH_STATUSES),
     ),
     check(
       "recommendation_batches_target_date_check",
@@ -166,7 +166,7 @@ export const recommendationCategories = sqliteTable(
     ),
     check(
       "recommendation_categories_category_check",
-      inArray(table.category, HOTPEPPER_GENRES).inlineParams(),
+      inArray(table.category, HOTPEPPER_GENRES),
     ),
   ],
 );
@@ -228,7 +228,7 @@ export const recommendations = sqliteTable(
     ),
     check(
       "recommendations_distance_group_check",
-      inArray(table.distanceGroup, DISTANCE_GROUPS).inlineParams(),
+      inArray(table.distanceGroup, DISTANCE_GROUPS),
     ),
     check(
       "recommendations_distance_meters_check",
