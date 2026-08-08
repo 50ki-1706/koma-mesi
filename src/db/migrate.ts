@@ -24,6 +24,7 @@ export interface RunMigrationsOptions {
 /**
  * Runs database migrations and validates foreign key integrity.
  * @param options - Migration configuration options
+ * @returns マイグレーションと foreign key check の完了時に解決する Promise。
  * @throws {Error} if foreign key violations are detected after migration
  */
 export async function runMigrations(
