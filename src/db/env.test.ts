@@ -49,6 +49,18 @@ describe("resolveDatabaseCredentials", () => {
     });
   });
 
+  it("returns explicitly configured credentials for local commands", () => {
+    const env = {
+      DATABASE_URL: "libsql://local-command.example.com",
+      DATABASE_AUTH_TOKEN: "local-command-token",
+    };
+
+    expect(resolveDatabaseCredentials(env)).toEqual({
+      url: "libsql://local-command.example.com",
+      authToken: "local-command-token",
+    });
+  });
+
   it("throws when production URL is missing", () => {
     const env = {
       VERCEL_ENV: "production",

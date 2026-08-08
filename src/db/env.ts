@@ -1,6 +1,8 @@
 // Resolves Turso database credentials from the runtime environment.
 // Handles Vercel production/preview targets plus local file-based development.
 
+import { DEFAULT_DATABASE_URL } from "@/constants/database";
+
 /**
  * Resolve the database URL and optional auth token for the current environment.
  *
@@ -46,7 +48,13 @@ export function resolveDatabaseCredentials(
     VERCEL_ENV === undefined ||
     VERCEL_ENV === ""
   ) {
-    return { url: "file:local.db" };
+    const url = env.DATABASE_URL ?? DEFAULT_DATABASE_URL;
+    const authToken = env.DATABASE_AUTH_TOKEN;
+
+    return {
+      url,
+      ...(authToken !== undefined && { authToken }),
+    };
   }
 
   throw new Error(`Unsupported VERCEL_ENV: ${VERCEL_ENV}`);
