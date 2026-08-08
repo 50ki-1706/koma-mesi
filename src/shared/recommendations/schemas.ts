@@ -10,14 +10,22 @@ import {
   RECOMMENDATIONS_PER_CATEGORY,
 } from "@/constants/recommendationGeneration";
 import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
+import { isAllowedRecommendationTargetDate } from "../japanDate";
 
 /** 推薦生成APIの入力。日付を省略した場合は日本時間の当日を使用する。 */
 export const GenerateRecommendationsInputSchema = z.object({
-  targetDate: z.iso.date().optional(),
+  targetDate: z.iso
+    .date()
+    .refine(isAllowedRecommendationTargetDate, {
+      error: "対象日は日本時間の当日または翌日のみ指定できます。",
+    })
+    .optional(),
 });
 
 /** 保存済み推薦取得APIの入力。日付を省略した場合は日本時間の当日を使用する。 */
-export const GetRecommendationsInputSchema = GenerateRecommendationsInputSchema;
+export const GetRecommendationsInputSchema = z.object({
+  targetDate: z.iso.date().optional(),
+});
 
 /** 推薦APIが返す料金レンジ。 */
 export const RecommendationPriceRangeSchema = z.object({

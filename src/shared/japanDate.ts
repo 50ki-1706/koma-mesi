@@ -3,7 +3,10 @@
  * 推薦生成・取得・Cronで同じ日付境界を利用する。
  */
 
-import { JAPAN_TIME_ZONE } from "@/constants/dateTime";
+import {
+  JAPAN_TIME_ZONE,
+  MILLISECONDS_PER_DAY,
+} from "@/constants/dateTime";
 
 /**
  * Dateを日本時間のYYYY-MM-DDへ変換する。
@@ -20,4 +23,22 @@ export function formatJapanDate(date: Date): string {
   }).formatToParts(date);
   const values = new Map(parts.map((part) => [part.type, part.value]));
   return `${values.get("year")}-${values.get("month")}-${values.get("day")}`;
+}
+
+/**
+ * 指定日が日本時間の当日または翌日か判定する。
+ *
+ * @param targetDate - YYYY-MM-DD形式の対象日。
+ * @param now - 判定基準の現在時刻。
+ * @returns 生成を許可する日付ならtrue。
+ */
+export function isAllowedRecommendationTargetDate(
+  targetDate: string,
+  now: Date = new Date(),
+): boolean {
+  const today = formatJapanDate(now);
+  const tomorrow = formatJapanDate(
+    new Date(now.getTime() + MILLISECONDS_PER_DAY),
+  );
+  return targetDate === today || targetDate === tomorrow;
 }
