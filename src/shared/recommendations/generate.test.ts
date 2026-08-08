@@ -184,6 +184,21 @@ describe("generateDailyRecommendations", () => {
     expect(repository.createBatch).not.toHaveBeenCalled();
   });
 
+  it("バッチ作成が競合したら生成済みエラーに変換する", async () => {
+    const repository = createRepository();
+    vi.mocked(repository.createBatch).mockResolvedValue(null);
+
+    await expect(
+      generateDailyRecommendations(
+        { repository, googlePlaces: createGooglePlaces() },
+        { userId: "user-1", targetDate: "2026-08-09" },
+      ),
+    ).rejects.toMatchObject({
+      code: "BATCH_ALREADY_EXISTS",
+    } satisfies Partial<RecommendationGenerationError>);
+    expect(repository.markBatchProcessing).not.toHaveBeenCalled();
+  });
+
   it("生成途中で失敗したらバッチをfailedへ変更する", async () => {
     const repository = createRepository();
     const googlePlaces = createGooglePlaces();

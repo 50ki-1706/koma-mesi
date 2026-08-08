@@ -89,12 +89,12 @@ export interface RecommendationRepository {
    *
    * @param userId - Better AuthのユーザーID。
    * @param targetDate - YYYY-MM-DD形式の対象日。
-   * @returns 作成したバッチ。
+   * @returns 作成したバッチ。unique競合時はnull。
    */
   createBatch(
     userId: string,
     targetDate: string,
-  ): Promise<RecommendationBatchRecord>;
+  ): Promise<RecommendationBatchRecord | null>;
 
   /**
    * バッチを処理中へ変更する。
@@ -393,23 +393,26 @@ export class DrizzleRecommendationRepository
    *
    * @param userId - Better AuthのユーザーID。
    * @param targetDate - YYYY-MM-DD形式の対象日。
-   * @returns 作成したバッチ。
+   * @returns 作成したバッチ。unique競合時はnull。
    */
   async createBatch(
     userId: string,
     targetDate: string,
-  ): Promise<RecommendationBatchRecord> {
+  ): Promise<RecommendationBatchRecord | null> {
     const [batch] = await this.database
       .insert(schema.recommendationBatches)
       .values({ userId, targetDate })
+      .onConflictDoNothing({
+        target: [
+          schema.recommendationBatches.userId,
+          schema.recommendationBatches.targetDate,
+        ],
+      })
       .returning({
         id: schema.recommendationBatches.id,
         status: schema.recommendationBatches.status,
       });
-    if (batch === undefined) {
-      throw new Error("推薦バッチを作成できませんでした。");
-    }
-    return batch;
+    return batch ?? null;
   }
 
   /**

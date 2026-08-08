@@ -83,6 +83,12 @@ export async function generateDailyRecommendations(
     command.userId,
     targetDate,
   );
+  if (batch === null) {
+    throw new RecommendationGenerationError(
+      "BATCH_ALREADY_EXISTS",
+      "対象日の推薦はすでに作成済み、または処理中です。",
+    );
+  }
 
   try {
     await dependencies.repository.markBatchProcessing(batch.id);
