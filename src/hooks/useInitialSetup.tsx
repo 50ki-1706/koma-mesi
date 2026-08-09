@@ -12,6 +12,7 @@ import { LOGIN_DESTINATION } from "@/constants/auth";
 import {
   DEFAULT_LUNCH_DAYS,
   INITIAL_SETUP_DESTINATION,
+  LUNCH_TIME_RANGE_ERROR_MESSAGE,
   type WeekdayValue,
 } from "@/constants/initialSetup";
 import { signIn, useSession } from "@/lib/auth-client";
@@ -25,6 +26,7 @@ export interface InitialSetupFormController {
   isAuthenticated: boolean;
   userName: string | null;
   selectedDays: WeekdayValue[];
+  lunchTimeError: string | null;
   errorMessage: string | null;
   isSubmitting: boolean;
   handleGoogleSignIn: () => void;
@@ -53,6 +55,7 @@ export function useInitialSetup(): InitialSetupFormController {
   const [isCheckingSetup, setIsCheckingSetup] = useState(false);
   const [isInitialSetupStatusError, setIsInitialSetupStatusError] =
     useState(false);
+  const [lunchTimeError, setLunchTimeError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
@@ -116,8 +119,6 @@ export function useInitialSetup(): InitialSetupFormController {
 
   /**
    * Google OAuthのログインフローを開始する。
-   *
-   * @returns なし。
    */
   const handleGoogleSignIn = (): void => {
     void signIn.social({
@@ -127,19 +128,16 @@ export function useInitialSetup(): InitialSetupFormController {
   };
 
   /**
-   * 現在のGoogleログインセッションからログアウトする。
-   *
-   * @returns なし。
+   * Googleアカウントのログアウト処理を実行する。
    */
   const handleSignOut = (): void => {
     void logout();
   };
 
   /**
-   * 指定した曜日の選択状態を反転する。
+   * 指定された曜日の選択状態を切り替える。
    *
-   * @param day - 選択状態を変更する曜日。
-   * @returns なし。
+   * @param day - 切り替える曜日の値。
    */
   const toggleDay = (day: WeekdayValue): void => {
     setSelectedDays((currentDays) =>
@@ -150,7 +148,7 @@ export function useInitialSetup(): InitialSetupFormController {
   };
 
   /**
-   * ブラウザーの入力検証後に初期設定後のページへ遷移する。
+   * ブラウザーの入力検証後、昼休みの時間帯を確認してから初期設定後のページへ遷移する。
    *
    * @param event - フォーム送信イベント。
    * @returns 送信処理が完了したときに解決するPromise。
@@ -163,6 +161,17 @@ export function useInitialSetup(): InitialSetupFormController {
     if (userId === null) {
       return;
     }
+
+    const formData = new FormData(event.currentTarget);
+    const lunchStartTime = getStringField(formData, "lunchStartTime");
+    const lunchEndTime = getStringField(formData, "lunchEndTime");
+
+    if (lunchEndTime <= lunchStartTime) {
+      setLunchTimeError(LUNCH_TIME_RANGE_ERROR_MESSAGE);
+      return;
+    }
+
+    setLunchTimeError(null);
 
     if (
       isInitialSetupStatusError ||
@@ -177,12 +186,9 @@ export function useInitialSetup(): InitialSetupFormController {
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData(event.currentTarget);
       const postalCode = getStringField(formData, "postalCode");
       const prefecture = getStringField(formData, "prefecture");
       const streetAddress = getStringField(formData, "streetAddress");
-      const lunchStartTime = getStringField(formData, "lunchStartTime");
-      const lunchEndTime = getStringField(formData, "lunchEndTime");
 
       await orpc.initialSetup.complete({
         postalCode,
@@ -213,6 +219,7 @@ export function useInitialSetup(): InitialSetupFormController {
     isAuthenticated: Boolean(session),
     userName: session?.user.name ?? null,
     selectedDays,
+    lunchTimeError,
     errorMessage,
     isSubmitting,
     handleGoogleSignIn,
