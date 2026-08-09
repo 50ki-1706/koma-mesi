@@ -1,6 +1,6 @@
 /**
- * oRPC procedures for public health checks and authenticated initial setup.
- * The initial setup procedures persist the user's campus and lunch schedule.
+ * アプリケーションが公開するoRPC procedureを1つのルーターへ集約する。
+ * health・推薦・初期設定の各procedureをクライアントへ公開する。
  */
 import { ORPCError, os } from "@orpc/server";
 import { eq } from "drizzle-orm";
@@ -8,6 +8,7 @@ import { z } from "zod";
 import { WEEKDAYS, type WeekdayValue } from "@/constants/constants";
 import { userPreferences } from "@/db/schema";
 import type { ORPCContext } from "./context";
+import { recommendationRouter } from "./recommendation";
 
 const base = os.$context<ORPCContext>();
 type AuthenticatedORPCContext = Omit<ORPCContext, "session"> & {
@@ -113,11 +114,23 @@ const initialSetupRouter = base.router({
   }),
 });
 
+/** アプリケーションが公開するoRPCルーター。 */
 export const router = base.router({
-  health: base.handler(() => {
-    return { ok: true };
-  }),
+  health: base
+    .route({
+      method: "GET",
+      path: "/health",
+      operationId: "health",
+      summary: "APIの稼働状態を取得する",
+      tags: ["system"],
+    })
+    .output(z.object({ ok: z.literal(true) }))
+    .handler(() => {
+      return { ok: true as const };
+    }),
+  recommendation: recommendationRouter,
   initialSetup: initialSetupRouter,
 });
 
+/** クライアントへ共有するoRPCルーター型。 */
 export type AppRouter = typeof router;
