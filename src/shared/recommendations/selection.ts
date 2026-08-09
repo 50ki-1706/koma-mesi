@@ -3,6 +3,7 @@
  * Google通信やDB操作を含まない純粋な推薦選定ロジックを提供する。
  */
 
+import { DISTANCE_GROUPS } from "@/constants/constants";
 import {
   GOOGLE_PRIMARY_TYPES_BY_LUNCH_CATEGORY,
   LUNCH_RECOMMENDATION_CATEGORIES,
@@ -11,7 +12,6 @@ import {
   RECOMMENDATION_CATEGORY_COUNT,
   RECOMMENDATIONS_PER_CATEGORY,
 } from "@/constants/recommendationGeneration";
-import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
 import type {
   Coordinates,
   GooglePlacesGateway,

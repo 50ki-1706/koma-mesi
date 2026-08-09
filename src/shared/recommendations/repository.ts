@@ -5,11 +5,11 @@
 
 import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import type { z } from "zod";
+import { DISTANCE_GROUPS } from "@/constants/constants";
 import {
   LUNCH_RECOMMENDATION_CATEGORIES,
   type LunchRecommendationCategory,
 } from "@/constants/recommendationGeneration";
-import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
 import type { db as applicationDb } from "@/db";
 import * as schema from "@/db/schema";
 import type {

@@ -3,11 +3,11 @@
  * 本番レスポンスと同じZodスキーマで検証し、API契約とのずれを防ぐ。
  */
 
+import { DISTANCE_GROUPS } from "@/constants/constants";
 import {
   LUNCH_RECOMMENDATION_CATEGORIES,
   RECOMMENDATION_CATEGORY_COUNT,
 } from "@/constants/recommendationGeneration";
-import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
 import { formatJapanDate } from "../japanDate";
 import {
   type GenerateRecommendationsOutput,

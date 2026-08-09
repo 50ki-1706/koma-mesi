@@ -4,12 +4,12 @@
  */
 
 import { z } from "zod";
+import { DISTANCE_GROUPS } from "@/constants/constants";
 import {
   LUNCH_RECOMMENDATION_CATEGORIES,
   RECOMMENDATION_CATEGORY_COUNT,
   RECOMMENDATIONS_PER_CATEGORY,
 } from "@/constants/recommendationGeneration";
-import { DISTANCE_GROUPS } from "@/constants/recommendationSchema";
 import { isAllowedRecommendationTargetDate } from "../japanDate";
 
 /** 推薦生成APIの入力。日付を省略した場合は日本時間の当日を使用する。 */
