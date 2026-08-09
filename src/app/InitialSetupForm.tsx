@@ -16,10 +16,13 @@ import { KomaMeshiMark } from "@/shared/components/KomaMeshiMark/KomaMeshiMark";
  */
 export function InitialSetupForm({
   isInitialStatePending,
+  isInitialSetupStatusError,
   isAuthenticated,
   userName,
   selectedDays,
   lunchTimeError,
+  errorMessage,
+  isSubmitting,
   handleGoogleSignIn,
   handleSignOut,
   toggleDay,
@@ -109,6 +112,14 @@ export function InitialSetupForm({
             className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-width:thin] [scrollbar-color:var(--color-line)_transparent] sm:px-8 sm:py-6 lg:px-10"
             onSubmit={handleSubmit}
           >
+            {errorMessage !== null ? (
+              <p
+                className="mb-4 rounded-xl border border-brand/40 bg-brand-soft px-3 py-2 text-xs font-bold text-ink"
+                role="alert"
+              >
+                {errorMessage}
+              </p>
+            ) : null}
             <fieldset>
               <legend className="flex items-center gap-2 text-sm font-black sm:text-base">
                 <span className="grid size-6 place-items-center rounded-full bg-brand text-xs text-surface">
@@ -285,9 +296,14 @@ export function InitialSetupForm({
               <button
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-black text-ink shadow-[0_8px_20px_oklch(0.65_0.15_75/0.22)] transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
                 type="submit"
-                disabled={selectedDays.length === 0}
+                disabled={
+                  selectedDays.length === 0 ||
+                  isInitialSetupStatusError ||
+                  isInitialStatePending ||
+                  isSubmitting
+                }
               >
-                設定を完了する
+                {isSubmitting ? "設定を保存しています…" : "設定を完了する"}
                 <svg
                   className="size-4 fill-none stroke-current stroke-2"
                   viewBox="0 0 20 20"
