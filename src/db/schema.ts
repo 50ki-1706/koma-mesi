@@ -94,6 +94,9 @@ export const userPreferences = sqliteTable(
     campusAddress: text("campus_address").notNull(),
     campusLatitude: real("campus_latitude"),
     campusLongitude: real("campus_longitude"),
+    lunchStartTime: text("lunch_start_time"),
+    lunchEndTime: text("lunch_end_time"),
+    lunchDays: text("lunch_days"),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),

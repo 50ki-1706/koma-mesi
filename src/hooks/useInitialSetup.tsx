@@ -8,13 +8,14 @@
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { LOGIN_DESTINATION } from "@/constants/auth";
 import {
   DEFAULT_LUNCH_DAYS,
   INITIAL_SETUP_DESTINATION,
-  INITIAL_SETUP_STORAGE_KEY_PREFIX,
   type WeekdayValue,
 } from "@/constants/initialSetup";
 import { signIn, useSession } from "@/lib/auth-client";
+import { orpc } from "@/lib/orpc/client";
 import { logout } from "@/shared/auth/logout";
 
 /** 初期設定画面の表示状態と操作をまとめたコントローラー。 */
@@ -26,7 +27,7 @@ export interface InitialSetupFormController {
   handleGoogleSignIn: () => void;
   handleSignOut: () => void;
   toggleDay: (day: WeekdayValue) => void;
-  handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  handleSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 }
 
 /**
@@ -43,7 +44,10 @@ export function useInitialSetup(): InitialSetupFormController {
   );
   const [selectedDays, setSelectedDays] =
     useState<WeekdayValue[]>(DEFAULT_LUNCH_DAYS);
+  const [isSetupCompleted, setIsSetupCompleted] = useState(false);
+  const [isCheckingSetup, setIsCheckingSetup] = useState(false);
 
+  // Check setup status from DB after session is loaded
   useEffect(() => {
     if (isSessionPending) {
       return;
@@ -51,19 +55,42 @@ export function useInitialSetup(): InitialSetupFormController {
 
     if (userId === null) {
       setCheckedUserId(null);
+      setIsSetupCompleted(false);
+      setIsCheckingSetup(false);
       return;
     }
 
-    const isSetupCompleted =
-      window.localStorage.getItem(createSetupStorageKey(userId)) === "true";
+    let cancelled = false;
+    setIsCheckingSetup(true);
 
+    orpc.initialSetup
+      .status()
+      .then(({ isCompleted }) => {
+        if (!cancelled) {
+          setIsSetupCompleted(isCompleted);
+          setCheckedUserId(userId);
+          setIsCheckingSetup(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIsSetupCompleted(false);
+          setCheckedUserId(userId);
+          setIsCheckingSetup(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSessionPending, userId]);
+
+  // Redirect when setup is completed
+  useEffect(() => {
     if (isSetupCompleted) {
       router.replace(INITIAL_SETUP_DESTINATION);
-      return;
     }
-
-    setCheckedUserId(userId);
-  }, [isSessionPending, router, userId]);
+  }, [isSetupCompleted, router]);
 
   /**
    * Google OAuthのログインフローを開始する。
@@ -71,7 +98,10 @@ export function useInitialSetup(): InitialSetupFormController {
    * @returns なし。
    */
   const handleGoogleSignIn = (): void => {
-    void signIn.social({ provider: "google" });
+    void signIn.social({
+      provider: "google",
+      callbackURL: LOGIN_DESTINATION,
+    });
   };
 
   /**
@@ -101,21 +131,45 @@ export function useInitialSetup(): InitialSetupFormController {
    * ブラウザーの入力検証後に初期設定後のページへ遷移する。
    *
    * @param event - フォーム送信イベント。
-   * @returns なし。
+   * @returns 送信処理が完了したときに解決するPromise。
    */
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault();
 
     if (userId === null) {
       return;
     }
 
-    window.localStorage.setItem(createSetupStorageKey(userId), "true");
-    router.push(INITIAL_SETUP_DESTINATION);
+    const formData = new FormData(event.currentTarget);
+    const postalCode = (formData.get("postalCode") as string | null) ?? "";
+    const prefecture = (formData.get("prefecture") as string | null) ?? "";
+    const streetAddress =
+      (formData.get("streetAddress") as string | null) ?? "";
+    const lunchStartTime =
+      (formData.get("lunchStartTime") as string | null) ?? "";
+    const lunchEndTime = (formData.get("lunchEndTime") as string | null) ?? "";
+
+    try {
+      await orpc.initialSetup.complete({
+        postalCode,
+        prefecture,
+        streetAddress,
+        lunchStartTime,
+        lunchEndTime,
+        lunchDays: selectedDays,
+      });
+
+      router.push(INITIAL_SETUP_DESTINATION);
+    } catch {
+      // Keep form visible on error so user can retry
+    }
   };
 
   return {
-    isInitialStatePending: isSessionPending || checkedUserId !== userId,
+    isInitialStatePending:
+      isSessionPending || isCheckingSetup || checkedUserId !== userId,
     isAuthenticated: Boolean(session),
     userName: session?.user.name ?? null,
     selectedDays,
@@ -124,14 +178,4 @@ export function useInitialSetup(): InitialSetupFormController {
     toggleDay,
     handleSubmit,
   };
-}
-
-/**
- * Googleアカウントごとに初期設定の完了状態を保持するキーを作成する。
- *
- * @param userId - ログイン中のユーザーID。
- * @returns ユーザー固有のローカルストレージキー。
- */
-function createSetupStorageKey(userId: string): string {
-  return `${INITIAL_SETUP_STORAGE_KEY_PREFIX}:${userId}`;
 }
