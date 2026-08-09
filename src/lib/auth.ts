@@ -16,6 +16,7 @@ const {
   oauthProxySecret,
 } = resolveAuthCredentials();
 
+/** Provides the Better Auth server configuration for application route handlers. */
 export const auth = betterAuth({
   baseURL: {
     allowedHosts,
