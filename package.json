@@ -20,6 +20,9 @@
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:reset": "drizzle-kit reset",
+    "vercel:inspect": "vercel inspect",
+    "vercel:logs": "vercel logs",
+    "vercel:curl": "vercel curl",
     "devcontainer:setup": "bash scripts/devcontainer/setup.sh",
     "verify:frontend": "pnpm typecheck && pnpm check",
     "verify": "pnpm typecheck && pnpm test:run && pnpm check"
