@@ -63,12 +63,12 @@ function resolveLocalCredentials(env: Record<string, string | undefined>): {
   url: string;
   authToken?: string;
 } {
-  const url = env.DATABASE_URL ?? DEFAULT_DATABASE_URL;
-  const authToken = env.DATABASE_AUTH_TOKEN;
+  const url = env.DATABASE_URL?.trim() || DEFAULT_DATABASE_URL;
+  const authToken = env.DATABASE_AUTH_TOKEN?.trim();
 
   return {
     url,
-    ...(authToken !== undefined && { authToken }),
+    ...(authToken ? { authToken } : {}),
   };
 }
 

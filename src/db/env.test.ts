@@ -103,6 +103,24 @@ describe("resolveDatabaseCredentials", () => {
     });
   });
 
+  it("falls back to the local SQLite file when DATABASE_URL is empty", () => {
+    const env = {
+      DATABASE_URL: "",
+      DATABASE_AUTH_TOKEN: "",
+    };
+
+    expect(resolveDatabaseCredentials(env)).toEqual({ url: "file:local.db" });
+  });
+
+  it("falls back to the local SQLite file when DATABASE_URL is whitespace-only", () => {
+    const env = {
+      DATABASE_URL: "   ",
+      DATABASE_AUTH_TOKEN: "  ",
+    };
+
+    expect(resolveDatabaseCredentials(env)).toEqual({ url: "file:local.db" });
+  });
+
   it("throws when production URL is missing", () => {
     const env = {
       VERCEL_ENV: "production",
