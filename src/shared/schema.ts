@@ -1,16 +1,26 @@
 /**
- * 推薦APIと推薦生成処理で共有するZodスキーマを定義する。
- * APIの入力・出力とGoogle Placesレスポンスを実行時に検証する。
+ * アプリケーション全体で共有するZodスキーマを単一エントリポイントに集約する。
+ * 推薦API・初期設定・ヘルスチェックの入出力を実行時に検証する。
  */
 
 import { z } from "zod";
-import { DISTANCE_GROUPS } from "@/constants/constants";
+import { DISTANCE_GROUPS, WEEKDAYS } from "@/constants/constants";
 import {
   LUNCH_RECOMMENDATION_CATEGORIES,
   RECOMMENDATION_CATEGORY_COUNT,
   RECOMMENDATIONS_PER_CATEGORY,
 } from "@/constants/recommendationGeneration";
-import { isAllowedRecommendationTargetDate } from "../japanDate";
+import { isAllowedRecommendationTargetDate } from "./japanDate";
+
+const weekdayValues = WEEKDAYS.map(({ value }) => value) as [
+  (typeof WEEKDAYS)[number]["value"],
+  ...(typeof WEEKDAYS)[number]["value"][],
+];
+
+/** Validates a time in bounded, zero-padded 24-hour HH:MM notation. */
+const boundedTimeSchema = z
+  .string()
+  .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Invalid time format");
 
 /** 推薦生成APIの入力。日付を省略した場合は日本時間の当日を使用する。 */
 export const GenerateRecommendationsInputSchema = z.object({
@@ -86,6 +96,34 @@ export const DailyRecommendationCronOutputSchema = z.object({
   failedUsers: z.number().int().nonnegative(),
 });
 
+/** Validates and normalizes the input required to complete initial setup. */
+export const initialSetupInputSchema = z
+  .object({
+    postalCode: z.string().trim().min(1),
+    prefecture: z.string().trim().min(1),
+    streetAddress: z.string().trim().min(1),
+    lunchStartTime: boundedTimeSchema,
+    lunchEndTime: boundedTimeSchema,
+    lunchDays: z
+      .enum(weekdayValues)
+      .array()
+      .min(1, "At least one day is required")
+      .transform((days) =>
+        [...new Set(days)].sort(
+          (a, b) =>
+            WEEKDAYS.findIndex((w) => w.value === a) -
+            WEEKDAYS.findIndex((w) => w.value === b),
+        ),
+      ),
+  })
+  .refine(({ lunchStartTime, lunchEndTime }) => lunchStartTime < lunchEndTime, {
+    error: "Lunch start time must be before lunch end time",
+    path: ["lunchEndTime"],
+  });
+
+/** ヘルスチェックAPIのレスポンス。 */
+export const healthOutputSchema = z.object({ ok: z.literal(true) });
+
 /** 推薦生成APIの入力型。 */
 export type GenerateRecommendationsInput = z.infer<
   typeof GenerateRecommendationsInputSchema
@@ -110,3 +148,9 @@ export type GetRecommendationsOutput = z.infer<
 export type DailyRecommendationCronOutput = z.infer<
   typeof DailyRecommendationCronOutputSchema
 >;
+
+/** 初期設定APIの入力型。transform後の正規化済み曜日配列を含む。 */
+export type InitialSetupInput = z.output<typeof initialSetupInputSchema>;
+
+/** ヘルスチェックAPIのレスポンス型。 */
+export type HealthOutput = z.infer<typeof healthOutputSchema>;

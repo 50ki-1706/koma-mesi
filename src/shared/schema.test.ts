@@ -4,7 +4,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GenerateRecommendationsInputSchema } from "./schemas";
+import { GenerateRecommendationsInputSchema } from "./schema";
 
 describe("GenerateRecommendationsInputSchema", () => {
   afterEach(() => {

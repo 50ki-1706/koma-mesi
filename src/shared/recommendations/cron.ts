@@ -4,14 +4,14 @@
  */
 
 import { timingSafeEqual } from "node:crypto";
+import type {
+  DailyRecommendationCronOutput,
+  GenerateRecommendationsOutput,
+} from "@/shared/schema";
 import { formatJapanDate } from "../japanDate";
 import type { GenerateDailyRecommendationsCommand } from "./generate";
 import { RecommendationGenerationError } from "./generate";
 import type { RecommendationCronRepository } from "./repository";
-import type {
-  DailyRecommendationCronOutput,
-  GenerateRecommendationsOutput,
-} from "./schemas";
 
 /** Cronから呼び出すユーザー単位の推薦生成処理。 */
 export type DailyRecommendationGenerator = (

@@ -16,7 +16,7 @@ import {
   getDailyRecommendations,
 } from "@/shared/recommendations/read";
 import { DrizzleRecommendationRepository } from "@/shared/recommendations/repository";
-import type { GetRecommendationsOutput } from "@/shared/recommendations/schemas";
+import type { GetRecommendationsOutput } from "@/shared/schema";
 
 /** 推薦生成procedureから呼び出すユースケース。 */
 export type RecommendationGenerator = DailyRecommendationGenerator;

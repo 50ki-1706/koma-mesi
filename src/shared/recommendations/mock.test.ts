@@ -4,8 +4,8 @@
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { GenerateRecommendationsOutputSchema } from "@/shared/schema";
 import { createDailyRecommendationMock } from "./mock";
-import { GenerateRecommendationsOutputSchema } from "./schemas";
 
 describe("createDailyRecommendationMock", () => {
   afterEach(() => {

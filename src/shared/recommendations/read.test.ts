@@ -4,10 +4,10 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import type { GetRecommendationsOutput } from "@/shared/schema";
 import { createDailyRecommendationMock } from "./mock";
 import { getDailyRecommendations } from "./read";
 import type { RecommendationReadRepository } from "./repository";
-import type { GetRecommendationsOutput } from "./schemas";
 
 /**
  * 取得テスト用Repositoryを生成する。
