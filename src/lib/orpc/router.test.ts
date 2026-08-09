@@ -27,6 +27,8 @@ const getRecommendations = async () => {
   throw new Error("このテストでは推薦取得を呼び出しません。");
 };
 
+const geocodeAddress = async () => null;
+
 const authenticatedSession = {
   session: {
     id: "session-1",
@@ -125,6 +127,7 @@ describe("router.health", () => {
         session: null,
         generateRecommendations,
         getRecommendations,
+        geocodeAddress,
       },
     });
 
@@ -145,6 +148,7 @@ describe("router.recommendation.generate", () => {
           session: authenticatedSession,
           generateRecommendations: generate,
           getRecommendations,
+          geocodeAddress,
         },
       },
     );
@@ -169,6 +173,7 @@ describe("router.recommendation.generate", () => {
             session: null,
             generateRecommendations: generate,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -187,6 +192,7 @@ describe("router.recommendation.generate", () => {
             session: authenticatedSession,
             generateRecommendations,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -211,6 +217,7 @@ describe("router.recommendation.generate", () => {
             session: authenticatedSession,
             generateRecommendations: generate,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -235,6 +242,7 @@ describe("router.recommendation.generate", () => {
             session: authenticatedSession,
             generateRecommendations: generate,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -256,6 +264,7 @@ describe("router.recommendation.generate", () => {
             session: authenticatedSession,
             generateRecommendations: generate,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -276,6 +285,7 @@ describe("router.recommendation.getDaily", () => {
           session: authenticatedSession,
           generateRecommendations,
           getRecommendations: get,
+          geocodeAddress,
         },
       },
     );
@@ -300,6 +310,7 @@ describe("router.recommendation.getDaily", () => {
             session: authenticatedSession,
             generateRecommendations,
             getRecommendations: get,
+            geocodeAddress,
           },
         },
       ),
@@ -319,6 +330,7 @@ describe("router.recommendation.getDaily", () => {
             session: null,
             generateRecommendations,
             getRecommendations: get,
+            geocodeAddress,
           },
         },
       ),
@@ -350,6 +362,7 @@ describe("router.initialSetup", () => {
           session: null,
           generateRecommendations,
           getRecommendations,
+          geocodeAddress,
         },
       }),
     ).rejects.toMatchObject({
@@ -368,13 +381,14 @@ describe("router.initialSetup", () => {
         session: createTestSession(userId),
         generateRecommendations,
         getRecommendations,
+        geocodeAddress,
       },
     });
 
-    expect(result).toEqual({ isCompleted: false });
+    expect(result).toEqual({ isCompleted: false, campusLocation: null });
   });
 
-  it("設定完了済みの場合は true を返す", async () => {
+  it("設定完了済みで座標未設定の場合はcampusLocationがnull", async () => {
     const userId = "status-complete-user";
     await insertTestUser(testDb, userId);
     await testDb.insert(schema.userPreferences).values({
@@ -388,10 +402,37 @@ describe("router.initialSetup", () => {
         session: createTestSession(userId),
         generateRecommendations,
         getRecommendations,
+        geocodeAddress,
       },
     });
 
-    expect(result).toEqual({ isCompleted: true });
+    expect(result).toEqual({ isCompleted: true, campusLocation: null });
+  });
+
+  it("設定完了済みで座標がある場合はcampusLocationを返す", async () => {
+    const userId = "status-complete-with-location-user";
+    await insertTestUser(testDb, userId);
+    await testDb.insert(schema.userPreferences).values({
+      userId,
+      campusAddress: "〒100-0001 東京都千代田区1-1",
+      campusLatitude: 35.681236,
+      campusLongitude: 139.767125,
+    });
+
+    const result = await call(router.initialSetup.status, undefined, {
+      context: {
+        db: testDb,
+        session: createTestSession(userId),
+        generateRecommendations,
+        getRecommendations,
+        geocodeAddress,
+      },
+    });
+
+    expect(result).toEqual({
+      isCompleted: true,
+      campusLocation: { latitude: 35.681236, longitude: 139.767125 },
+    });
   });
 
   it("未認証の場合はエラーを返す", async () => {
@@ -412,6 +453,7 @@ describe("router.initialSetup", () => {
             session: null,
             generateRecommendations,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -424,6 +466,10 @@ describe("router.initialSetup", () => {
   it("有効な入力で作成できる", async () => {
     const userId = "complete-create-user";
     await insertTestUser(testDb, userId);
+    const geocode = vi.fn(async () => ({
+      latitude: 35.681236,
+      longitude: 139.767125,
+    }));
 
     const result = await call(
       router.initialSetup.complete,
@@ -441,6 +487,7 @@ describe("router.initialSetup", () => {
           session: createTestSession(userId),
           generateRecommendations,
           getRecommendations,
+          geocodeAddress: geocode,
         },
       },
     );
@@ -452,9 +499,47 @@ describe("router.initialSetup", () => {
     expect(preference).toMatchObject({
       userId,
       campusAddress: "〒100-0001 東京都千代田区1-1",
+      campusLatitude: 35.681236,
+      campusLongitude: 139.767125,
       lunchStartTime: "12:00",
       lunchEndTime: "13:00",
       lunchDays: "monday,wednesday",
+    });
+    expect(geocode).toHaveBeenCalledWith("〒100-0001 東京都千代田区1-1");
+  });
+
+  it("ジオコーディングが該当なしの場合は座標をnullで保存する", async () => {
+    const userId = "complete-geocode-null-user";
+    await insertTestUser(testDb, userId);
+
+    const result = await call(
+      router.initialSetup.complete,
+      {
+        postalCode: "100-0001",
+        prefecture: "東京都",
+        streetAddress: "千代田区1-1",
+        lunchStartTime: "12:00",
+        lunchEndTime: "13:00",
+        lunchDays: ["monday"],
+      },
+      {
+        context: {
+          db: testDb,
+          session: createTestSession(userId),
+          generateRecommendations,
+          getRecommendations,
+          geocodeAddress,
+        },
+      },
+    );
+    const preference = await testDb.query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, userId),
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(preference).toMatchObject({
+      campusLatitude: null,
+      campusLongitude: null,
     });
   });
 
@@ -473,6 +558,10 @@ describe("router.initialSetup", () => {
       createdAt: oldUpdatedAt,
       updatedAt: oldUpdatedAt,
     });
+    const geocode = vi.fn(async () => ({
+      latitude: 35.658581,
+      longitude: 139.701342,
+    }));
 
     await call(
       router.initialSetup.complete,
@@ -490,6 +579,7 @@ describe("router.initialSetup", () => {
           session: createTestSession(userId),
           generateRecommendations,
           getRecommendations,
+          geocodeAddress: geocode,
         },
       },
     );
@@ -499,12 +589,13 @@ describe("router.initialSetup", () => {
 
     expect(preference).toMatchObject({
       campusAddress: "〒150-0001 東京都渋谷区1-2",
-      campusLatitude: null,
-      campusLongitude: null,
+      campusLatitude: 35.658581,
+      campusLongitude: 139.701342,
       lunchStartTime: "12:30",
       lunchEndTime: "13:30",
       lunchDays: "friday",
     });
+    expect(geocode).toHaveBeenCalledWith("〒150-0001 東京都渋谷区1-2");
 
     const updatedAt = preference?.updatedAt;
     expect(updatedAt).toBeInstanceOf(Date);
@@ -535,6 +626,7 @@ describe("router.initialSetup", () => {
             session: createTestSession(userId),
             generateRecommendations,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -562,6 +654,7 @@ describe("router.initialSetup", () => {
             session: createTestSession(userId),
             generateRecommendations,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -596,6 +689,7 @@ describe("router.initialSetup", () => {
               session: createTestSession(userId),
               generateRecommendations,
               getRecommendations,
+              geocodeAddress,
             },
           },
         ),
@@ -623,6 +717,7 @@ describe("router.initialSetup", () => {
           session: createTestSession(userId),
           generateRecommendations,
           getRecommendations,
+          geocodeAddress,
         },
       },
     );
@@ -659,6 +754,7 @@ describe("router.initialSetup", () => {
               session: createTestSession(userId),
               generateRecommendations,
               getRecommendations,
+              geocodeAddress,
             },
           },
         ),
@@ -692,6 +788,7 @@ describe("router.initialSetup", () => {
               session: createTestSession(userId),
               generateRecommendations,
               getRecommendations,
+              geocodeAddress,
             },
           },
         ),
@@ -720,6 +817,7 @@ describe("router.initialSetup", () => {
             session: createTestSession(userId),
             generateRecommendations,
             getRecommendations,
+            geocodeAddress,
           },
         },
       ),
@@ -746,6 +844,7 @@ describe("router.initialSetup", () => {
           session: createTestSession(userId),
           generateRecommendations,
           getRecommendations,
+          geocodeAddress,
         },
       },
     );

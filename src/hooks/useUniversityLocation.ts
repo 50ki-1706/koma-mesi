@@ -1,19 +1,44 @@
 /**
  * ログインユーザーが登録した大学（キャンパス）の位置を取得するフック。
- * user_preferencesへの緯度経度保存が未実装のため、暫定的に固定値を返す。
+ * user_preferencesに保存された緯度経度をorpc経由で取得する。
  */
 
-// TODO: user_preferencesにlatitude/longitudeが追加され次第、
-// orpc経由でログインユーザーの大学位置を取得する実装に置き換える。
-const PLACEHOLDER_UNIVERSITY_LOCATION: google.maps.LatLngLiteral = {
-  lat: 35.6896,
-  lng: 139.7006,
-};
+"use client";
+
+import { useEffect, useState } from "react";
+import { orpc } from "@/lib/orpc/client";
 
 /**
  * ログインユーザーの大学の緯度経度を取得する。
- * @returns 大学の位置（現状は仮の固定値）
+ * @returns 大学の位置。未取得または未設定の場合はnull。
  */
-export function useUniversityLocation(): google.maps.LatLngLiteral {
-  return PLACEHOLDER_UNIVERSITY_LOCATION;
+export function useUniversityLocation(): google.maps.LatLngLiteral | null {
+  const [location, setLocation] = useState<google.maps.LatLngLiteral | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    orpc.initialSetup
+      .status()
+      .then(({ campusLocation }) => {
+        if (cancelled || campusLocation === null) {
+          return;
+        }
+        setLocation({
+          lat: campusLocation.latitude,
+          lng: campusLocation.longitude,
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to fetch campus location:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return location;
 }

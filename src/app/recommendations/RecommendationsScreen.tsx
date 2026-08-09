@@ -11,7 +11,10 @@ import { RecommendationCarousel } from "@/app/recommendations/RecommendationCaro
 import { RecommendationMap } from "@/app/recommendations/RecommendationMap";
 import { LG_BREAKPOINT_QUERY } from "@/constants/constants";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useRecommendations } from "@/hooks/useRecommendations";
+import {
+  formatPriceRange,
+  useRecommendations,
+} from "@/hooks/useRecommendations";
 import { useUniversityLocation } from "@/hooks/useUniversityLocation";
 import { BottomSheet } from "@/shared/components/BottomSheet/BottomSheet";
 
@@ -29,12 +32,14 @@ export function RecommendationsScreen() {
     currentItem,
     isBottomSheetOpen,
     isMobileMapVisible,
+    isGenerating,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,
     closeBottomSheet,
     showMobileMap,
     hideMobileMap,
+    handleGenerate,
   } = useRecommendations();
   const universityLocation = useUniversityLocation();
   const isDesktopViewport = useMediaQuery(LG_BREAKPOINT_QUERY);
@@ -43,13 +48,13 @@ export function RecommendationsScreen() {
       return null;
     }
     return {
-      lat: currentItem.recommendation.latitude,
-      lng: currentItem.recommendation.longitude,
+      lat: currentItem.restaurant.latitude,
+      lng: currentItem.restaurant.longitude,
     };
   }, [
     currentItem,
-    currentItem?.recommendation.latitude,
-    currentItem?.recommendation.longitude,
+    currentItem?.restaurant.latitude,
+    currentItem?.restaurant.longitude,
   ]);
 
   if (isLoading) {
@@ -77,9 +82,19 @@ export function RecommendationsScreen() {
   if (items.length === 0) {
     return (
       <main className="grid h-dvh place-items-center bg-background p-6 text-center text-ink">
-        <p className="text-sm font-bold text-ink-muted">
-          まだおすすめのお店がありません。
-        </p>
+        <div>
+          <p className="text-sm font-bold text-ink-muted">
+            まだおすすめのお店がありません。
+          </p>
+          <button
+            className="mt-4 h-11 rounded-xl bg-brand px-6 text-sm font-black text-ink shadow-[0_8px_20px_oklch(0.65_0.15_75/0.22)] transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40"
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+          >
+            {isGenerating ? "生成しています…" : "今日のおすすめを生成する"}
+          </button>
+        </div>
       </main>
     );
   }
@@ -115,7 +130,10 @@ export function RecommendationsScreen() {
           </Link>
         </header>
 
-        {isMobileMapVisible && !isDesktopViewport && destination !== null ? (
+        {isMobileMapVisible &&
+        !isDesktopViewport &&
+        destination !== null &&
+        universityLocation !== null ? (
           <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-line/80 bg-surface shadow-recommendation">
             <RecommendationMap
               origin={universityLocation}
@@ -140,7 +158,9 @@ export function RecommendationsScreen() {
         )}
       </div>
 
-      {destination !== null && isDesktopViewport ? (
+      {destination !== null &&
+      isDesktopViewport &&
+      universityLocation !== null ? (
         <div className="min-h-0 flex-1 pt-2">
           <RecommendationMap
             origin={universityLocation}
@@ -152,7 +172,7 @@ export function RecommendationsScreen() {
       <div className="lg:hidden">
         <BottomSheet
           isOpen={isBottomSheetOpen}
-          title={currentItem?.recommendation.name}
+          title={currentItem?.restaurant.name}
           onOpen={openBottomSheet}
           onClose={closeBottomSheet}
         >
@@ -164,10 +184,13 @@ export function RecommendationsScreen() {
                     WALK
                   </p>
                   <p className="text-lg font-black text-ink">
-                    {currentItem.recommendation.durationMinutes}分
+                    {Math.round(
+                      currentItem.restaurant.campusToRestaurantSeconds / 60,
+                    )}
+                    分
                   </p>
                   <p className="mt-1 text-xs text-ink-muted">
-                    大学から {currentItem.recommendation.distanceMeters}m
+                    大学から {currentItem.restaurant.distanceMeters}m
                   </p>
                 </div>
                 <div className="rounded-2xl bg-surface-muted p-4">
@@ -175,7 +198,7 @@ export function RecommendationsScreen() {
                     BUDGET
                   </p>
                   <p className="text-lg font-black text-ink">
-                    約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+                    {formatPriceRange(currentItem.restaurant.priceRange)}
                   </p>
                 </div>
               </div>

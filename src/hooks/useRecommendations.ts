@@ -5,144 +5,97 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { orpc } from "@/lib/orpc/client";
+import type { GetRecommendationsOutput } from "@/shared/recommendations/schemas";
+
+/** 店舗の料金レンジ。未取得の場合はnull。 */
+export type RecommendationPriceRange =
+  NonNullable<GetRecommendationsOutput>["categories"][number]["recommendations"][number]["restaurant"]["priceRange"];
 
 /**
- * ジャンルごとのおすすめレストラン情報
+ * カテゴリ1件につき、大学から最も近い（near）店舗のみを表示対象とする。
+ * middle・farの店舗選択UIは未実装のため、いったんnearのみを扱う。
  */
 export interface FeaturedRecommendation {
-  genre: {
+  category: {
     id: string;
     name: string;
-    sortOrder: number;
-    createdAt: Date;
   };
-  recommendation: {
+  restaurant: {
     id: string;
-    genreId: string;
     name: string;
     address: string;
     latitude: number;
     longitude: number;
     distanceMeters: number;
-    durationMinutes: number;
-    photoUrl: string;
-    photoUrls: string[];
-    priceYen: number;
-    platformUrl: string;
-    isFeatured: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    campusToRestaurantSeconds: number;
+    priceRange: RecommendationPriceRange;
   };
 }
 
-// TODO: 表示確認用の一時的なデモデータ。DBにデータを投入したら削除し、
-// 下のuseEffect内をorpc.recommendation.listFeaturedByGenre()の呼び出しに戻すこと。
-const DEMO_ITEMS: FeaturedRecommendation[] = [
-  {
-    genre: { id: "1", name: "ラーメン", sortOrder: 1, createdAt: new Date() },
-    recommendation: {
-      id: "1",
-      genreId: "1",
-      name: "麺屋 大学前",
-      address: "東京都新宿区西新宿1-2-3",
-      latitude: 35.6907,
-      longitude: 139.6995,
-      distanceMeters: 450,
-      durationMinutes: 6,
-      photoUrl: "https://picsum.photos/seed/ramen/600/400",
-      photoUrls: [
-        "https://picsum.photos/seed/ramen/600/400",
-        "https://picsum.photos/seed/ramen-noodles/600/400",
-        "https://picsum.photos/seed/ramen-counter/600/400",
-      ],
-      priceYen: 850,
-      platformUrl: "https://example.com/ramen",
-      isFeatured: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  },
-  {
-    genre: { id: "2", name: "カレー", sortOrder: 2, createdAt: new Date() },
-    recommendation: {
-      id: "2",
-      genreId: "2",
-      name: "スパイスカレー ことこと",
-      address: "東京都新宿区西新宿2-4-1",
-      latitude: 35.6895,
-      longitude: 139.696,
-      distanceMeters: 320,
-      durationMinutes: 4,
-      photoUrl: "https://picsum.photos/seed/curry/600/400",
-      photoUrls: [
-        "https://picsum.photos/seed/curry/600/400",
-        "https://picsum.photos/seed/curry-spice/600/400",
-        "https://picsum.photos/seed/curry-table/600/400",
-      ],
-      priceYen: 780,
-      platformUrl: "https://example.com/curry",
-      isFeatured: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  },
-  {
-    genre: { id: "3", name: "定食", sortOrder: 3, createdAt: new Date() },
-    recommendation: {
-      id: "3",
-      genreId: "3",
-      name: "大衆食堂 みのり",
-      address: "東京都新宿区西新宿3-1-8",
-      latitude: 35.6928,
-      longitude: 139.6938,
-      distanceMeters: 600,
-      durationMinutes: 8,
-      photoUrl: "https://picsum.photos/seed/teishoku/600/400",
-      photoUrls: [
-        "https://picsum.photos/seed/teishoku/600/400",
-        "https://picsum.photos/seed/teishoku-dish/600/400",
-        "https://picsum.photos/seed/teishoku-room/600/400",
-      ],
-      priceYen: 950,
-      platformUrl: "https://example.com/teishoku",
-      isFeatured: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  },
-  {
-    genre: { id: "4", name: "カフェ", sortOrder: 4, createdAt: new Date() },
-    recommendation: {
-      id: "4",
-      genreId: "4",
-      name: "サンドイッチ&コーヒー Leaf",
-      address: "東京都新宿区西新宿1-6-2",
-      latitude: 35.6902,
-      longitude: 139.7005,
-      distanceMeters: 280,
-      durationMinutes: 3,
-      photoUrl: "https://picsum.photos/seed/cafe/600/400",
-      photoUrls: [
-        "https://picsum.photos/seed/cafe/600/400",
-        "https://picsum.photos/seed/cafe-sandwich/600/400",
-        "https://picsum.photos/seed/cafe-coffee/600/400",
-      ],
-      priceYen: 690,
-      platformUrl: "https://example.com/cafe",
-      isFeatured: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  },
-];
+/**
+ * 保存済み推薦のうち、カテゴリごとにnearの店舗だけを表示用データへ変換する。
+ *
+ * @param output - 推薦取得APIのレスポンス。
+ * @returns カテゴリごとに1件（near）を並べた表示用データ。
+ */
+function toFeaturedRecommendations(
+  output: GetRecommendationsOutput,
+): FeaturedRecommendation[] {
+  if (output === null) {
+    return [];
+  }
 
-/** レコメンドページの表示状態と操作をまとめたコントローラー。 */
+  return output.categories.flatMap((category) => {
+    const near = category.recommendations.find(
+      (recommendation) => recommendation.distanceGroup === "near",
+    );
+    if (near === undefined) {
+      return [];
+    }
+
+    return [
+      {
+        category: { id: category.id, name: category.category },
+        restaurant: {
+          id: near.restaurant.id,
+          name: near.restaurant.name,
+          address: near.restaurant.address,
+          latitude: near.restaurant.latitude,
+          longitude: near.restaurant.longitude,
+          distanceMeters: near.distanceMeters,
+          campusToRestaurantSeconds: near.campusToRestaurantSeconds,
+          priceRange: near.restaurant.priceRange,
+        },
+      },
+    ];
+  });
+}
+
+/**
+ * 店舗の料金レンジを表示用の文字列へ整形する。
+ *
+ * @param priceRange - 店舗の料金レンジ。未取得の場合はnull。
+ * @returns 表示用の料金文字列。
+ */
+export function formatPriceRange(priceRange: RecommendationPriceRange): string {
+  if (priceRange === null) {
+    return "価格情報なし";
+  }
+
+  const start = `¥${priceRange.startPrice.toLocaleString()}`;
+  if (priceRange.endPrice === null) {
+    return `${start}〜`;
+  }
+
+  return `${start}〜¥${priceRange.endPrice.toLocaleString()}`;
+}
+
 /**
  * おすすめ画面の表示状態と操作を提供する。
  */
 export interface RecommendationsController {
-  /** モバイル viewport で地図ビューを表示しているか。 */
   isLoading: boolean;
   errorMessage: string | null;
   items: FeaturedRecommendation[];
@@ -150,14 +103,15 @@ export interface RecommendationsController {
   currentItem: FeaturedRecommendation | null;
   isBottomSheetOpen: boolean;
   /** モバイル viewport で地図ビューを表示しているか。 */
-
   isMobileMapVisible: boolean;
+  isGenerating: boolean;
   handleSwipeNext: () => void;
   handleSwipePrevious: () => void;
   openBottomSheet: () => void;
   closeBottomSheet: () => void;
   showMobileMap: () => void;
   hideMobileMap: () => void;
+  handleGenerate: () => void;
 }
 
 /**
@@ -171,24 +125,29 @@ export function useRecommendations(): RecommendationsController {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isMobileMapVisible, setIsMobileMapVisible] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  /**
+   * ログインユーザーの保存済み推薦をDBから取得する。
+   *
+   * @returns 取得処理が完了したときに解決するPromise。
+   */
+  const fetchRecommendations = useCallback(async (): Promise<void> => {
+    try {
+      const result = await orpc.recommendation.getDaily({});
+      setItems(toFeaturedRecommendations(result));
+      setErrorMessage(null);
+    } catch (error) {
+      console.error("Failed to fetch recommendations:", error);
+      setErrorMessage("おすすめのお店を取得できませんでした。");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // TODO: 表示確認用の一時的なデモデータ表示。DB投入後は元に戻す:
-    // const fetchRecommendations = async (): Promise<void> => {
-    //   try {
-    //     const result = await orpc.recommendation.listFeaturedByGenre();
-    //     setItems(result);
-    //   } catch {
-    //     setErrorMessage("おすすめのお店を取得できませんでした。");
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
-    // };
-    // void fetchRecommendations();
-    setItems(DEMO_ITEMS);
-    setErrorMessage(null);
-    setIsLoading(false);
-  }, []);
+    void fetchRecommendations();
+  }, [fetchRecommendations]);
 
   /**
    * 次のジャンルへ表示を進める（末尾の次は先頭に戻る）。
@@ -245,6 +204,29 @@ export function useRecommendations(): RecommendationsController {
     setIsMobileMapVisible(false);
   };
 
+  /**
+   * 当日分の推薦を手動生成し、成功したら一覧を再取得する。
+   * Cronの実行を待たずに動作確認できるようにするための操作。
+   *
+   * @returns なし。
+   */
+  const handleGenerate = (): void => {
+    if (isGenerating) {
+      return;
+    }
+    setIsGenerating(true);
+    orpc.recommendation
+      .generate({})
+      .then(() => fetchRecommendations())
+      .catch((error: unknown) => {
+        console.error("Failed to generate recommendations:", error);
+        setErrorMessage("おすすめを生成できませんでした。");
+      })
+      .finally(() => {
+        setIsGenerating(false);
+      });
+  };
+
   return {
     isLoading,
     errorMessage,
@@ -253,11 +235,13 @@ export function useRecommendations(): RecommendationsController {
     currentItem: items[currentIndex] ?? null,
     isBottomSheetOpen,
     isMobileMapVisible,
+    isGenerating,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,
     closeBottomSheet,
     showMobileMap,
     hideMobileMap,
+    handleGenerate,
   };
 }

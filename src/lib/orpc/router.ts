@@ -76,14 +76,15 @@ const initialSetupRouter = base.router({
       const userId = context.session.user.id;
       const campusAddress = `〒${input.postalCode} ${input.prefecture}${input.streetAddress}`;
       const lunchDaysStr = input.lunchDays.join(",");
+      const location = await context.geocodeAddress(campusAddress);
 
       await context.db
         .insert(userPreferences)
         .values({
           userId,
           campusAddress,
-          campusLatitude: null,
-          campusLongitude: null,
+          campusLatitude: location?.latitude ?? null,
+          campusLongitude: location?.longitude ?? null,
           lunchStartTime: input.lunchStartTime,
           lunchEndTime: input.lunchEndTime,
           lunchDays: lunchDaysStr,
@@ -92,8 +93,8 @@ const initialSetupRouter = base.router({
           target: userPreferences.userId,
           set: {
             campusAddress,
-            campusLatitude: null,
-            campusLongitude: null,
+            campusLatitude: location?.latitude ?? null,
+            campusLongitude: location?.longitude ?? null,
             lunchStartTime: input.lunchStartTime,
             lunchEndTime: input.lunchEndTime,
             lunchDays: lunchDaysStr,
@@ -104,13 +105,20 @@ const initialSetupRouter = base.router({
       return { success: true };
     }),
 
-  /** Returns whether the authenticated user has completed initial setup. */
+  /** Returns whether the authenticated user has completed initial setup, and their campus location if known. */
   status: protectedBase.handler(async ({ context }) => {
     const userId = context.session.user.id;
     const prefs = await context.db.query.userPreferences.findFirst({
       where: eq(userPreferences.userId, userId),
     });
-    return { isCompleted: !!prefs };
+    const campusLocation =
+      prefs?.campusLatitude !== null &&
+      prefs?.campusLatitude !== undefined &&
+      prefs?.campusLongitude !== null &&
+      prefs?.campusLongitude !== undefined
+        ? { latitude: prefs.campusLatitude, longitude: prefs.campusLongitude }
+        : null;
+    return { isCompleted: !!prefs, campusLocation };
   }),
 });
 
