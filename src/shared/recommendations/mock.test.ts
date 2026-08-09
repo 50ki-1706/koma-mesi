@@ -23,6 +23,9 @@ describe("createDailyRecommendationMock", () => {
     );
     expect(mock.targetDate).toBe("2026-08-10");
     expect(mock.categories).toHaveLength(3);
+    expect(
+      mock.categories.map(({ recommendations }) => recommendations.length),
+    ).toEqual([3, 3, 3]);
     expect(recommendations).toHaveLength(9);
     expect(
       new Set(
