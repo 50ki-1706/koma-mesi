@@ -12,12 +12,12 @@ import {
 } from "@/constants/recommendationGeneration";
 import type { db as applicationDb } from "@/db";
 import * as schema from "@/db/schema";
+import type { DistanceGroup } from "@/shared/recommendations/selection";
 import type {
   GenerateRecommendationsOutput,
   GetRecommendationsOutput,
   RecommendationPriceRangeSchema,
-} from "@/shared/recommendations/schemas";
-import type { DistanceGroup } from "@/shared/recommendations/selection";
+} from "@/shared/schema";
 import type { GooglePlaceDetails } from "./googlePlaces";
 
 /**

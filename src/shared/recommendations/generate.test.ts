@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import type { GenerateRecommendationsOutput } from "@/shared/schema";
 import { formatJapanDate } from "../japanDate";
 import type { RecommendationGenerationError } from "./generate";
 import { generateDailyRecommendations } from "./generate";
@@ -13,7 +14,6 @@ import type {
   RecommendationRepository,
   StoredRestaurant,
 } from "./repository";
-import type { GenerateRecommendationsOutput } from "./schemas";
 
 /**
  * 保存入力からテスト用の正常レスポンスを生成する。

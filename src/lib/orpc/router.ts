@@ -4,9 +4,8 @@
  */
 import { ORPCError, os } from "@orpc/server";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
-import { WEEKDAYS, type WeekdayValue } from "@/constants/constants";
 import { userPreferences } from "@/db/schema";
+import { healthOutputSchema, initialSetupInputSchema } from "@/shared/schema";
 import type { ORPCContext } from "./context";
 import { recommendationRouter } from "./recommendation";
 
@@ -32,41 +31,6 @@ const protectedBase = base.use<AuthenticatedORPCContext>(
     });
   },
 );
-
-const weekdayValues = WEEKDAYS.map(({ value }) => value) as [
-  WeekdayValue,
-  ...WeekdayValue[],
-];
-
-/** Validates a time in bounded, zero-padded 24-hour HH:MM notation. */
-const boundedTimeSchema = z
-  .string()
-  .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Invalid time format");
-
-/** Validates and normalizes the input required to complete initial setup. */
-const initialSetupInputSchema = z
-  .object({
-    postalCode: z.string().trim().min(1),
-    prefecture: z.string().trim().min(1),
-    streetAddress: z.string().trim().min(1),
-    lunchStartTime: boundedTimeSchema,
-    lunchEndTime: boundedTimeSchema,
-    lunchDays: z
-      .enum(weekdayValues)
-      .array()
-      .min(1, "At least one day is required")
-      .transform((days) =>
-        [...new Set(days)].sort(
-          (a, b) =>
-            WEEKDAYS.findIndex((w) => w.value === a) -
-            WEEKDAYS.findIndex((w) => w.value === b),
-        ),
-      ),
-  })
-  .refine(({ lunchStartTime, lunchEndTime }) => lunchStartTime < lunchEndTime, {
-    error: "Lunch start time must be before lunch end time",
-    path: ["lunchEndTime"],
-  });
 
 const initialSetupRouter = base.router({
   /** Persists the authenticated user's campus address and lunch schedule. */
@@ -132,7 +96,7 @@ export const router = base.router({
       summary: "APIの稼働状態を取得する",
       tags: ["system"],
     })
-    .output(z.object({ ok: z.literal(true) }))
+    .output(healthOutputSchema)
     .handler(() => {
       return { ok: true as const };
     }),

@@ -8,11 +8,11 @@ import {
   LUNCH_RECOMMENDATION_CATEGORIES,
   RECOMMENDATION_CATEGORY_COUNT,
 } from "@/constants/recommendationGeneration";
-import { formatJapanDate } from "../japanDate";
 import {
   type GenerateRecommendationsOutput,
   GenerateRecommendationsOutputSchema,
-} from "./schemas";
+} from "@/shared/schema";
+import { formatJapanDate } from "../japanDate";
 
 const MOCK_CATEGORIES = LUNCH_RECOMMENDATION_CATEGORIES.slice(
   0,
