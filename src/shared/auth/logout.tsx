@@ -1,4 +1,9 @@
-import { LOGIN_DESTINATION } from "@/constants/auth";
+/**
+ * 認証済みユーザーのlogout処理を提供する。
+ * logout完了後はログイン画面の遷移先を使用する。
+ */
+
+import { LOGIN_DESTINATION } from "@/constants/constants";
 import { signOut } from "@/lib/auth-client";
 
 /**

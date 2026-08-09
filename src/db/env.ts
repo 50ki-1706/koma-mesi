@@ -1,7 +1,7 @@
 // Resolves Turso database credentials from the runtime environment.
 // Handles Vercel production/preview targets plus local file-based development.
 
-import { DEFAULT_DATABASE_URL } from "@/constants/database";
+import { DEFAULT_DATABASE_URL } from "@/constants/constants";
 
 /**
  * Resolve the database URL and optional auth token for the current environment.

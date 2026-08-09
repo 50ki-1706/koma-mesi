@@ -8,7 +8,7 @@
 
 import { APIProvider, Map as GoogleMap } from "@vis.gl/react-google-maps";
 import { useEffect, useState } from "react";
-import { DEFAULT_MAP_ZOOM } from "@/constants/maps";
+import { DEFAULT_MAP_ZOOM } from "@/constants/constants";
 import { useDirectionsRoute } from "@/hooks/useDirectionsRoute";
 import { useGoogleMapsApiKey } from "@/hooks/useGoogleMapsApiKey";
 
