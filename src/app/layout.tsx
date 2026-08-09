@@ -12,9 +12,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/** アプリケーション全体で使用するタイトル、説明、およびアイコン設定。 */
 export const metadata: Metadata = {
   title: "コマメシ | 大学のランチをもっと楽しく",
   description: "大学の昼休みにぴったりのお店と出会えるランチサービスです。",
+  icons: {
+    icon: {
+      url: "/komamesi.svg",
+      type: "image/svg+xml",
+    },
+  },
 };
 
 /**
