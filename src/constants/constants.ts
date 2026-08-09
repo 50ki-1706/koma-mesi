@@ -25,6 +25,7 @@ export const SWIPE_THRESHOLD_PX = 48;
 
 // ── Initial Setup ──
 
+/** 初期設定フォームで選択できる都道府県名の一覧。 */
 export const PREFECTURES = [
   "北海道",
   "青森県",
@@ -75,6 +76,7 @@ export const PREFECTURES = [
   "沖縄県",
 ] as const;
 
+/** 初期設定フォームで選択できる平日の表示名と値の一覧。 */
 export const WEEKDAYS = [
   { label: "月曜日", value: "monday" },
   { label: "火曜日", value: "tuesday" },
@@ -83,8 +85,10 @@ export const WEEKDAYS = [
   { label: "金曜日", value: "friday" },
 ] as const;
 
+/** `WEEKDAYS` から導出した平日の値。 */
 export type WeekdayValue = (typeof WEEKDAYS)[number]["value"];
 
+/** 初期設定時に選択する既定の昼休み曜日。 */
 export const DEFAULT_LUNCH_DAYS: WeekdayValue[] = [
   "monday",
   "wednesday",
