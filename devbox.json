@@ -1,6 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.2/.schema/devbox.schema.json",
-  "packages": ["nodejs@26.4.0", "pnpm@11.1.2", "cocogitto@7.0.0"],
+  "packages": [
+    "nodejs@26.4.0",
+    "pnpm@11.1.2",
+    "cocogitto@7.0.0",
+    "turso-cli@1.0.27"
+  ],
   "shell": {
     "init_hook": ["./scripts/init-hook-guard.sh"]
   }

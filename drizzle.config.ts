@@ -1,16 +1,19 @@
 /**
  * Drizzle Kit configuration for the SQLite schema and migration output.
- * Uses DATABASE_URL or the shared local database fallback.
+ * Loads database credentials from the shared resolver so CLI commands match runtime behavior.
  */
 
 import { defineConfig } from "drizzle-kit";
-import { DEFAULT_DATABASE_URL } from "./src/constants/database";
+import { resolveDatabaseCredentials } from "./src/db/env";
+
+const { url, authToken } = resolveDatabaseCredentials();
 
 export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./drizzle",
   dialect: "turso",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
+    url,
+    ...(authToken !== undefined && { authToken }),
   },
 });

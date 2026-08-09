@@ -14,10 +14,15 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env.local src/db/migrate.ts",
+    "db:migrate:production": "VERCEL_ENV=production tsx --env-file=.env.production src/db/migrate.ts",
+    "db:migrate:preview": "VERCEL_ENV=preview tsx --env-file=.env.preview src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:reset": "drizzle-kit reset",
+    "vercel:inspect": "vercel inspect",
+    "vercel:logs": "vercel logs",
+    "vercel:curl": "vercel curl",
     "devcontainer:setup": "bash scripts/devcontainer/setup.sh",
     "verify:frontend": "pnpm typecheck && pnpm check",
     "verify": "pnpm typecheck && pnpm test:run && pnpm check"
@@ -50,6 +55,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.11",
     "typescript": "^7",
+    "vercel": "^58.8.0",
     "vitest": "^4.1.6"
   },
   "packageManager": "pnpm@11.1.2+sha512.415a1cc25974731e75455c1468371be74c5aa5fb7621b50d4056d222451609f11412f23fd602e6169f1e060466641f798597e1be961a10688836a67b16569499"
