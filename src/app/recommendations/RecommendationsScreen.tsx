@@ -9,7 +9,7 @@ import { useMemo } from "react";
 
 import { RecommendationCarousel } from "@/app/recommendations/RecommendationCarousel";
 import { RecommendationMap } from "@/app/recommendations/RecommendationMap";
-import { LG_BREAKPOINT_QUERY } from "@/constants/breakpoints";
+import { LG_BREAKPOINT_QUERY } from "@/constants/constants";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useUniversityLocation } from "@/hooks/useUniversityLocation";

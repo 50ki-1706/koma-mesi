@@ -46,3 +46,7 @@ See the setup guide for your operating system:
 | macOS | [docs/setup/mac/README.md](./docs/setup/mac/README.md) |
 | Linux | [docs/setup/linux/README.md](./docs/setup/linux/README.md) |
 | Windows (WSL2) | [docs/setup/windows/README.md](./docs/setup/windows/README.md) |
+
+## API Reference
+
+Swagger UI is available at [http://localhost:3000/api/openapi](http://localhost:3000/api/openapi) after starting the development server. It provides an interactive interface to explore and test the API endpoints.

@@ -5,7 +5,7 @@
 "use client";
 
 import * as React from "react";
-import { RECOMMENDATION_PHOTO_INTERVAL_MS } from "@/constants/recommendations";
+import { RECOMMENDATION_PHOTO_INTERVAL_MS } from "@/constants/constants";
 import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
 
 interface RecommendationCardProps {
