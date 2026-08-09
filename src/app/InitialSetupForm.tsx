@@ -3,7 +3,7 @@
  * 入力値の更新や送信処理は外部から受け取り、表示に専念する。
  */
 
-import { PREFECTURES, WEEKDAYS } from "@/constants/initialSetup";
+import { PREFECTURES, WEEKDAYS } from "@/constants/constants";
 import type { InitialSetupFormController } from "@/hooks/useInitialSetup";
 import { KomaMeshiLogo } from "@/shared/components/KomaMeshiMark/KomaMeshiLogo";
 import { KomaMeshiMark } from "@/shared/components/KomaMeshiMark/KomaMeshiMark";

@@ -8,7 +8,7 @@
 import type { PointerEvent } from "react";
 import { useRef } from "react";
 import { RecommendationCard } from "@/app/recommendations/RecommendationCard";
-import { SWIPE_THRESHOLD_PX } from "@/constants/gestures";
+import { SWIPE_THRESHOLD_PX } from "@/constants/constants";
 import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
 
 interface RecommendationCarouselProps {

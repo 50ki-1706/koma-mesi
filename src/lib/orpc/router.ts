@@ -5,7 +5,7 @@
 import { ORPCError, os } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { WEEKDAYS, type WeekdayValue } from "@/constants/initialSetup";
+import { WEEKDAYS, type WeekdayValue } from "@/constants/constants";
 import { userPreferences } from "@/db/schema";
 import type { ORPCContext } from "./context";
 import { recommendationRouter } from "./recommendation";

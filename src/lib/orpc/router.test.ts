@@ -7,7 +7,7 @@ import { call } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { WeekdayValue } from "@/constants/initialSetup";
+import type { WeekdayValue } from "@/constants/constants";
 import { db } from "@/db";
 import { migrateWithEmptyStatementsFiltered } from "@/db/migrate";
 import * as schema from "@/db/schema";
