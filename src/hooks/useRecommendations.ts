@@ -149,6 +149,8 @@ export interface RecommendationsController {
   currentIndex: number;
   currentItem: FeaturedRecommendation | null;
   isBottomSheetOpen: boolean;
+  /** モバイル viewport で地図ビューを表示しているか。 */
+
   isMobileMapVisible: boolean;
   handleSwipeNext: () => void;
   handleSwipePrevious: () => void;

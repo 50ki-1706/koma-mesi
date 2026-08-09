@@ -145,13 +145,13 @@ export function BottomSheet({
       ) : null}
       <section
         ref={sheetRef}
-        className={`pointer-events-auto relative max-h-[85dvh] min-h-28 overflow-y-auto rounded-t-[1.75rem] border-t border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-24px_60px_oklch(0.45_0.08_70/0.16)] outline-none transition-transform duration-300 ease-out lg:mx-auto lg:w-[min(36rem,calc(100%-3rem))] lg:rounded-t-[1.75rem] lg:border-x ${
+        className={`pointer-events-auto relative max-h-[85dvh] min-h-28 overflow-y-auto rounded-t-[1.75rem] border-t border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-bottom-sheet outline-none transition-transform duration-300 ease-out lg:mx-auto lg:w-[min(36rem,calc(100%-3rem))] lg:rounded-t-[1.75rem] lg:border-x ${
           isOpen ? "translate-y-0" : "translate-y-[calc(100%-7rem)]"
         }`}
         aria-label={title === undefined ? "詳細" : undefined}
         aria-labelledby={title !== undefined ? "bottom-sheet-title" : undefined}
         aria-modal={isOpen ? "true" : undefined}
-        role={isOpen ? "dialog" : "region"}
+        role="dialog"
         tabIndex={-1}
       >
         <button

@@ -17,6 +17,11 @@
   --color-ink-muted: oklch(0.53 0.035 70);
   --color-line: oklch(0.88 0.045 84);
   --color-focus: oklch(0.67 0.17 65);
+  --color-photo-overlay: oklch(0.16 0.025 60 / 0.9);
+  --shadow-recommendation: 0 24px 80px oklch(0.45 0.08 70 / 0.16);
+  --shadow-recommendation-hover: 0 28px 90px oklch(0.45 0.08 70 / 0.2);
+  --shadow-floating-action: 0 8px 24px oklch(0.27 0.035 67 / 0.2);
+  --shadow-bottom-sheet: 0 -24px 60px oklch(0.45 0.08 70 / 0.16);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

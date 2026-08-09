@@ -116,13 +116,13 @@ export function RecommendationsScreen() {
         </header>
 
         {isMobileMapVisible && !isDesktopViewport && destination !== null ? (
-          <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-line/80 bg-surface shadow-[0_24px_80px_oklch(0.45_0.08_70/0.16)]">
+          <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-line/80 bg-surface shadow-recommendation">
             <RecommendationMap
               origin={universityLocation}
               destination={destination}
             />
             <button
-              className="absolute inset-x-4 bottom-4 h-11 rounded-xl bg-surface/95 px-5 text-sm font-black text-ink shadow-[0_8px_24px_oklch(0.27_0.035_67/0.2)] backdrop-blur-sm transition hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
+              className="absolute inset-x-4 bottom-4 h-11 rounded-xl bg-surface/95 px-5 text-sm font-black text-ink shadow-floating-action backdrop-blur-sm transition hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
               type="button"
               onClick={hideMobileMap}
             >
