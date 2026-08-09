@@ -37,6 +37,9 @@ const migrationTags = [
 /**
  * 一時フォルダに実際のマイグレーションSQLとDrizzleジャーナルを用意する。
  *
+ * `when`には連番を割り当てる。`migrateWithEmptyStatementsFiltered`は`when`の大小で
+ * 未適用のmigrationを判定するため、2回目の呼び出しで追加分のみが適用される。
+ *
  * @param migrationsFolder - 作成済みの一時マイグレーションフォルダ。
  * @param includedTags - フォルダに含めるマイグレーションタグ。
  * @returns 一時フォルダの準備完了を示すPromise。
@@ -134,16 +137,69 @@ describe("migration 0019 transition", () => {
 
       for (const [label, startTime, endTime] of invalidTimes) {
         const userId = `invalid-${label}`;
-        await client.execute(
-          `INSERT INTO user (id, name, email, email_verified, created_at, updated_at) VALUES ('${userId}', '${label}', '${userId}@example.com', 1, 1700000000, 1700000000)`,
-        );
+        await client.execute({
+          sql: "INSERT INTO user (id, name, email, email_verified, created_at, updated_at) VALUES (?, ?, ?, 1, 1700000000, 1700000000)",
+          args: [userId, label, `${userId}@example.com`],
+        });
 
         await expect(
-          client.execute(
-            `INSERT INTO user_preferences (id, user_id, campus_address, lunch_start_time, lunch_end_time, created_at, updated_at) VALUES ('pref-${label}', '${userId}', 'Invalid Campus', '${startTime}', '${endTime}', 1700000000, 1700000000)`,
-          ),
+          client.execute({
+            sql: "INSERT INTO user_preferences (id, user_id, campus_address, lunch_start_time, lunch_end_time, created_at, updated_at) VALUES (?, ?, 'Invalid Campus', ?, ?, 1700000000, 1700000000)",
+            args: [`pref-${label}`, userId, startTime, endTime],
+          }),
         ).rejects.toThrow(/CHECK constraint failed/i);
       }
+    } finally {
+      client.close();
+      await rm(migrationsFolder, { recursive: true, force: true });
+    }
+  });
+
+  it("normalizes invalid legacy lunch times during migration", async () => {
+    const migrationsFolder = await mkdtemp(
+      join(tmpdir(), "migrate-transition-test-"),
+    );
+    const client = createClient({ url: ":memory:" });
+
+    try {
+      await populateMigrationsFolder(
+        migrationsFolder,
+        migrationTags.slice(0, -1),
+      );
+      await client.execute("PRAGMA foreign_keys = ON");
+      const database = drizzle(client, { schema });
+
+      await migrateWithEmptyStatementsFiltered(database, { migrationsFolder });
+      await client.execute({
+        sql: "INSERT INTO user (id, name, email, email_verified, created_at, updated_at) VALUES (?, ?, ?, 1, 1700000000, 1700000000)",
+        args: [
+          "legacy-invalid-lunch",
+          "Legacy Invalid Lunch",
+          "legacy-invalid-lunch@example.com",
+        ],
+      });
+      await client.execute({
+        sql: "INSERT INTO user_preferences (id, user_id, campus_address, lunch_start_time, lunch_end_time, lunch_days, created_at, updated_at) VALUES (?, ?, 'Legacy Campus', ?, ?, NULL, 1700000000, 1700000000)",
+        args: [
+          "pref-legacy-invalid-lunch",
+          "legacy-invalid-lunch",
+          "13:00",
+          "12:00",
+        ],
+      });
+
+      await populateMigrationsFolder(migrationsFolder, migrationTags);
+      await migrateWithEmptyStatementsFiltered(database, { migrationsFolder });
+
+      const normalizedRow = await client.execute(
+        "SELECT lunch_start_time, lunch_end_time FROM user_preferences WHERE user_id = 'legacy-invalid-lunch'",
+      );
+      expect(normalizedRow.rows).toEqual([
+        {
+          lunch_start_time: null,
+          lunch_end_time: null,
+        },
+      ]);
     } finally {
       client.close();
       await rm(migrationsFolder, { recursive: true, force: true });

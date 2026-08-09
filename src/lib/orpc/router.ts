@@ -63,7 +63,7 @@ const initialSetupInputSchema = z
       ),
   })
   .refine(({ lunchStartTime, lunchEndTime }) => lunchStartTime < lunchEndTime, {
-    message: "Lunch start time must be before lunch end time",
+    error: "Lunch start time must be before lunch end time",
     path: ["lunchEndTime"],
   });
 

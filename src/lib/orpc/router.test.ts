@@ -7,6 +7,7 @@ import { call } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { WeekdayValue } from "@/constants/initialSetup";
 import { db } from "@/db";
 import { migrateWithEmptyStatementsFiltered } from "@/db/migrate";
 import * as schema from "@/db/schema";
@@ -387,6 +388,26 @@ describe("router.initialSetup", () => {
       ).rejects.toMatchObject({ code: "BAD_REQUEST" });
     },
   );
+
+  it("許可されていない曜日を含む場合はBAD_REQUESTを返す", async () => {
+    const userId = "complete-invalid-weekday-user";
+    await insertTestUser(testDb, userId);
+
+    await expect(
+      call(
+        router.initialSetup.complete,
+        {
+          postalCode: "100-0001",
+          prefecture: "東京都",
+          streetAddress: "千代田区1-1",
+          lunchStartTime: "12:00",
+          lunchEndTime: "13:00",
+          lunchDays: ["sunday"] as unknown as WeekdayValue[],
+        },
+        { context: { db: testDb, session: createTestSession(userId) } },
+      ),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 
   it("曜日が重複除去・ソートされて保存される", async () => {
     const userId = "complete-sorted-days-user";

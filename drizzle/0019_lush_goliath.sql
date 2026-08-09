@@ -1,4 +1,14 @@
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
+UPDATE `user_preferences` SET `lunch_start_time` = NULL WHERE `lunch_start_time` IS NOT NULL AND NOT (
+  `lunch_start_time` GLOB '[01][0-9]:[0-5][0-9]' OR `lunch_start_time` GLOB '2[0-3]:[0-5][0-9]'
+);--> statement-breakpoint
+UPDATE `user_preferences` SET `lunch_end_time` = NULL WHERE `lunch_end_time` IS NOT NULL AND NOT (
+  `lunch_end_time` GLOB '[01][0-9]:[0-5][0-9]' OR `lunch_end_time` GLOB '2[0-3]:[0-5][0-9]'
+);--> statement-breakpoint
+UPDATE `user_preferences` SET `lunch_start_time` = NULL, `lunch_end_time` = NULL
+WHERE `lunch_start_time` IS NOT NULL
+  AND `lunch_end_time` IS NOT NULL
+  AND `lunch_start_time` >= `lunch_end_time`;--> statement-breakpoint
 CREATE TABLE `__new_user_preferences` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
