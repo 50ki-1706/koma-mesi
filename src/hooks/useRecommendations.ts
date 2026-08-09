@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { orpc } from "@/lib/orpc/client";
-import type { GetRecommendationsOutput } from "@/shared/recommendations/schemas";
+import type { GetRecommendationsOutput } from "@/shared/schema";
 
 /** 店舗の料金レンジ。未取得の場合はnull。 */
 export type RecommendationPriceRange =
