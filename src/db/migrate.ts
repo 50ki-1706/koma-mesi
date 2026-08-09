@@ -12,7 +12,7 @@ import { sql } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { drizzle } from "drizzle-orm/libsql";
 import { type MigrationConfig, readMigrationFiles } from "drizzle-orm/migrator";
-import { DEFAULT_DATABASE_URL } from "@/constants/database";
+import { resolveDatabaseCredentials } from "./env";
 import * as schema from "./schema";
 
 /**
@@ -73,8 +73,10 @@ export async function migrateWithEmptyStatementsFiltered<
 
 /** Options for running migrations */
 export interface RunMigrationsOptions {
-  /** Database URL (defaults to DEFAULT_DATABASE_URL) */
+  /** Database URL. When omitted, it is resolved from the current environment. */
   databaseUrl?: string;
+  /** Optional auth token paired with databaseUrl. */
+  authToken?: string;
   /** Path to migrations folder (defaults to "./drizzle") */
   migrationsFolder?: string;
 }
@@ -88,12 +90,16 @@ export interface RunMigrationsOptions {
 export async function runMigrations(
   options: RunMigrationsOptions = {},
 ): Promise<void> {
-  const {
-    databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
-    migrationsFolder = "./drizzle",
-  } = options;
+  const { databaseUrl, authToken, migrationsFolder = "./drizzle" } = options;
+  const credentials =
+    databaseUrl === undefined
+      ? resolveDatabaseCredentials()
+      : {
+          url: databaseUrl,
+          ...(authToken !== undefined && { authToken }),
+        };
 
-  const client: Client = createClient({ url: databaseUrl });
+  const client: Client = createClient(credentials);
 
   try {
     await client.execute("PRAGMA foreign_keys = ON");

@@ -1,14 +1,17 @@
 /**
  * Database client initialization and connection setup.
- * Establishes the libSQL client connection and configures SQLite pragmas.
+ * Uses environment-based credentials so the same code works locally and on Vercel.
  */
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import { DEFAULT_DATABASE_URL } from "@/constants/database";
+import { resolveDatabaseCredentials } from "./env";
 import * as schema from "./schema";
 
+const { url, authToken } = resolveDatabaseCredentials();
+
 const client = createClient({
-  url: process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
+  url,
+  ...(authToken !== undefined && { authToken }),
 });
 
 // Enable foreign key enforcement for this connection.
