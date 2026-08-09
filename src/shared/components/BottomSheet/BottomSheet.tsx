@@ -6,7 +6,7 @@
 "use client";
 
 import type { PointerEvent, ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { SWIPE_THRESHOLD_PX } from "@/constants/gestures";
 
 interface BottomSheetProps {
@@ -33,6 +33,9 @@ export function BottomSheet({
   title,
   children,
 }: BottomSheetProps) {
+  const instanceId = useId();
+  const titleId = `bottom-sheet-title-${instanceId}`;
+  const contentId = `bottom-sheet-content-${instanceId}`;
   const sheetRef = useRef<HTMLElement | null>(null);
   const triggerElementRef = useRef<HTMLElement | null>(null);
   const startYRef = useRef<number | null>(null);
@@ -149,16 +152,16 @@ export function BottomSheet({
           isOpen ? "translate-y-0" : "translate-y-[calc(100%-7rem)]"
         }`}
         aria-label={title === undefined ? "詳細" : undefined}
-        aria-labelledby={title !== undefined ? "bottom-sheet-title" : undefined}
+        aria-labelledby={title !== undefined ? titleId : undefined}
         aria-modal={isOpen ? "true" : undefined}
-        role={isOpen ? "dialog" : "region"}
+        role="dialog"
         tabIndex={-1}
       >
         <button
           className="-mx-5 -mt-5 mb-3 flex h-24 w-[calc(100%+2.5rem)] touch-none flex-col items-center justify-start rounded-t-[1.75rem] pt-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-focus"
           type="button"
           aria-label={isOpen ? "店舗詳細を閉じる" : "店舗詳細を開く"}
-          aria-controls="bottom-sheet-content"
+          aria-controls={contentId}
           aria-expanded={isOpen}
           onClick={isOpen ? onClose : onOpen}
           onPointerCancel={() => {
@@ -171,13 +174,13 @@ export function BottomSheet({
           {title !== undefined ? (
             <span
               className="px-5 text-center text-base font-black tracking-tight"
-              id="bottom-sheet-title"
+              id={titleId}
             >
               {title}
             </span>
           ) : null}
         </button>
-        <div id="bottom-sheet-content" aria-hidden={!isOpen} inert={!isOpen}>
+        <div id={contentId} aria-hidden={!isOpen} inert={!isOpen}>
           {" "}
           {children}
         </div>
