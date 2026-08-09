@@ -14,8 +14,8 @@ export type RecommendationPriceRange =
   NonNullable<GetRecommendationsOutput>["categories"][number]["recommendations"][number]["restaurant"]["priceRange"];
 
 /**
- * カテゴリ1件につき、大学から最も近い（near）店舗のみを表示対象とする。
- * middle・farの店舗選択UIは未実装のため、いったんnearのみを扱う。
+ * カテゴリ1件につき、near・middle・farからランダムに選んだ1店舗を表示対象とする。
+ * 距離帯を選択するUIは未実装のため、取得のたびに抽選した1件だけを扱う。
  */
 export interface FeaturedRecommendation {
   category: {
@@ -36,10 +36,10 @@ export interface FeaturedRecommendation {
 }
 
 /**
- * 保存済み推薦のうち、カテゴリごとにnearの店舗だけを表示用データへ変換する。
+ * 保存済み推薦のうち、カテゴリごとに距離帯をランダムに1件選び表示用データへ変換する。
  *
  * @param output - 推薦取得APIのレスポンス。
- * @returns カテゴリごとに1件（near）を並べた表示用データ。
+ * @returns カテゴリごとに1件（near・middle・farからランダム）を並べた表示用データ。
  */
 function toFeaturedRecommendations(
   output: GetRecommendationsOutput,
@@ -49,10 +49,11 @@ function toFeaturedRecommendations(
   }
 
   return output.categories.flatMap((category) => {
-    const near = category.recommendations.find(
-      (recommendation) => recommendation.distanceGroup === "near",
-    );
-    if (near === undefined) {
+    const picked =
+      category.recommendations[
+        Math.floor(Math.random() * category.recommendations.length)
+      ];
+    if (picked === undefined) {
       return [];
     }
 
@@ -60,15 +61,15 @@ function toFeaturedRecommendations(
       {
         category: { id: category.id, name: category.category },
         restaurant: {
-          id: near.restaurant.id,
-          googlePlaceId: near.restaurant.googlePlaceId,
-          name: near.restaurant.name,
-          address: near.restaurant.address,
-          latitude: near.restaurant.latitude,
-          longitude: near.restaurant.longitude,
-          distanceMeters: near.distanceMeters,
-          campusToRestaurantSeconds: near.campusToRestaurantSeconds,
-          priceRange: near.restaurant.priceRange,
+          id: picked.restaurant.id,
+          googlePlaceId: picked.restaurant.googlePlaceId,
+          name: picked.restaurant.name,
+          address: picked.restaurant.address,
+          latitude: picked.restaurant.latitude,
+          longitude: picked.restaurant.longitude,
+          distanceMeters: picked.distanceMeters,
+          campusToRestaurantSeconds: picked.campusToRestaurantSeconds,
+          priceRange: picked.restaurant.priceRange,
         },
       },
     ];
