@@ -1,4 +1,4 @@
-import { LOGIN_DESTINATION } from "@/constants/auth";
+import { LOGIN_DESTINATION } from "@/constants/constants";
 import { signOut } from "@/lib/auth-client";
 
 /**

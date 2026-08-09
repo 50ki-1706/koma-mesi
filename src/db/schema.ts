@@ -17,7 +17,7 @@ import {
   DISTANCE_GROUPS,
   HOTPEPPER_GENRES,
   RECOMMENDATION_BATCH_STATUSES,
-} from "@/constants/recommendationSchema";
+} from "@/constants/constants";
 
 /** Better Authが管理するユーザーテーブル。 */
 export const user = sqliteTable("user", {

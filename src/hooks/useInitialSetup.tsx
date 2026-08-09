@@ -8,13 +8,13 @@
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import { LOGIN_DESTINATION } from "@/constants/auth";
 import {
   DEFAULT_LUNCH_DAYS,
   INITIAL_SETUP_DESTINATION,
+  LOGIN_DESTINATION,
   LUNCH_TIME_RANGE_ERROR_MESSAGE,
   type WeekdayValue,
-} from "@/constants/initialSetup";
+} from "@/constants/constants";
 import { signIn, useSession } from "@/lib/auth-client";
 import { orpc } from "@/lib/orpc/client";
 import { logout } from "@/shared/auth/logout";

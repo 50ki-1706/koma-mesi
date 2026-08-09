@@ -7,7 +7,7 @@
 
 import type { PointerEvent, ReactNode } from "react";
 import { useEffect, useId, useRef } from "react";
-import { SWIPE_THRESHOLD_PX } from "@/constants/gestures";
+import { SWIPE_THRESHOLD_PX } from "@/constants/constants";
 
 interface BottomSheetProps {
   isOpen: boolean;
