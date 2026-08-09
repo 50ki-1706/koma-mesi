@@ -42,6 +42,7 @@ describe("OpenAPI specification", () => {
           session: null,
           generateRecommendations: async () => createDailyRecommendationMock(),
           getRecommendations: async () => null,
+          geocodeAddress: async () => null,
         },
       },
     );
@@ -61,6 +62,7 @@ describe("OpenAPI specification", () => {
           session: null,
           generateRecommendations: async () => createDailyRecommendationMock(),
           getRecommendations: async () => null,
+          geocodeAddress: async () => null,
         },
       },
     );
@@ -90,6 +92,7 @@ describe("OpenAPI specification", () => {
             generateRecommendations: async () =>
               createDailyRecommendationMock(),
             getRecommendations: async () => null,
+            geocodeAddress: async () => null,
           },
         },
       );

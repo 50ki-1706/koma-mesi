@@ -5,6 +5,8 @@
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
+import type { GeocodedLocation } from "@/shared/campus/geocoding";
+import { geocodeAddress } from "@/shared/campus/geocoding";
 import type { DailyRecommendationGenerator } from "@/shared/recommendations/cron";
 import { generateDailyRecommendations } from "@/shared/recommendations/generate";
 import {
@@ -25,6 +27,11 @@ export type RecommendationGenerator = DailyRecommendationGenerator;
 export type RecommendationReader = (
   command: GetDailyRecommendationsCommand,
 ) => Promise<GetRecommendationsOutput>;
+
+/** 初期設定procedureから呼び出す住所ジオコーディング。失敗時はnullを返す。 */
+export type AddressGeocoder = (
+  address: string,
+) => Promise<GeocodedLocation | null>;
 
 /**
  * リクエストの認証情報、DB、推薦生成ユースケースをoRPCへ渡す。
@@ -50,11 +57,22 @@ export async function createORPCContext() {
   const getRecommendations: RecommendationReader = (command) =>
     getDailyRecommendations({ repository }, command);
 
+  const geocodeCampusAddress: AddressGeocoder = async (address) => {
+    const apiKey = requireGoogleMapsApiKey();
+    try {
+      return await geocodeAddress(address, apiKey);
+    } catch {
+      console.error("Failed to geocode campus address.");
+      return null;
+    }
+  };
+
   return {
     db,
     session,
     generateRecommendations,
     getRecommendations,
+    geocodeAddress: geocodeCampusAddress,
   };
 }
 

@@ -11,9 +11,13 @@ import { RecommendationCarousel } from "@/app/recommendations/RecommendationCaro
 import { RecommendationMap } from "@/app/recommendations/RecommendationMap";
 import { LG_BREAKPOINT_QUERY } from "@/constants/constants";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useRecommendations } from "@/hooks/useRecommendations";
+import {
+  formatPriceRange,
+  useRecommendations,
+} from "@/hooks/useRecommendations";
 import { useUniversityLocation } from "@/hooks/useUniversityLocation";
 import { BottomSheet } from "@/shared/components/BottomSheet/BottomSheet";
+import { toWalkingMinutes } from "@/shared/recommendations/format";
 
 /**
  * おすすめ飲食店の一覧画面を表示する。
@@ -24,32 +28,39 @@ export function RecommendationsScreen() {
   const {
     isLoading,
     errorMessage,
+    generationErrorMessage,
     items,
     currentIndex,
     currentItem,
     isBottomSheetOpen,
     isMobileMapVisible,
+    isGenerating,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,
     closeBottomSheet,
     showMobileMap,
     hideMobileMap,
+    handleGenerate,
   } = useRecommendations();
-  const universityLocation = useUniversityLocation();
+  const {
+    location: universityLocation,
+    isLoading: isUniversityLocationLoading,
+    hasError: hasUniversityLocationError,
+  } = useUniversityLocation();
   const isDesktopViewport = useMediaQuery(LG_BREAKPOINT_QUERY);
   const destination = useMemo<google.maps.LatLngLiteral | null>(() => {
     if (currentItem === null) {
       return null;
     }
     return {
-      lat: currentItem.recommendation.latitude,
-      lng: currentItem.recommendation.longitude,
+      lat: currentItem.restaurant.latitude,
+      lng: currentItem.restaurant.longitude,
     };
   }, [
     currentItem,
-    currentItem?.recommendation.latitude,
-    currentItem?.recommendation.longitude,
+    currentItem?.restaurant.latitude,
+    currentItem?.restaurant.longitude,
   ]);
 
   if (isLoading) {
@@ -77,9 +88,24 @@ export function RecommendationsScreen() {
   if (items.length === 0) {
     return (
       <main className="grid h-dvh place-items-center bg-background p-6 text-center text-ink">
-        <p className="text-sm font-bold text-ink-muted">
-          まだおすすめのお店がありません。
-        </p>
+        <div>
+          <p className="text-sm font-bold text-ink-muted">
+            まだおすすめのお店がありません。
+          </p>
+          <button
+            className="mt-4 h-11 rounded-xl bg-brand px-6 text-sm font-black text-ink shadow-brand-action transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40"
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+          >
+            {isGenerating ? "生成しています…" : "今日のおすすめを生成する"}
+          </button>
+          {generationErrorMessage !== null ? (
+            <p className="mt-3 text-sm font-bold text-danger" role="alert">
+              {generationErrorMessage}
+            </p>
+          ) : null}
+        </div>
       </main>
     );
   }
@@ -115,7 +141,27 @@ export function RecommendationsScreen() {
           </Link>
         </header>
 
-        {isMobileMapVisible && !isDesktopViewport && destination !== null ? (
+        {generationErrorMessage !== null ? (
+          <div
+            className="mb-3 flex shrink-0 items-center justify-between gap-3 rounded-2xl border border-line bg-surface-muted px-4 py-3 text-sm font-bold text-danger"
+            role="alert"
+          >
+            <p>{generationErrorMessage}</p>
+            <button
+              className="shrink-0 rounded-xl bg-brand px-4 py-2 text-xs font-black text-ink shadow-brand-action transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40"
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+            >
+              {isGenerating ? "生成しています…" : "再試行"}
+            </button>
+          </div>
+        ) : null}
+
+        {isMobileMapVisible &&
+        !isDesktopViewport &&
+        destination !== null &&
+        universityLocation !== null ? (
           <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-line/80 bg-surface shadow-recommendation">
             <RecommendationMap
               origin={universityLocation}
@@ -142,17 +188,27 @@ export function RecommendationsScreen() {
 
       {destination !== null && isDesktopViewport ? (
         <div className="min-h-0 flex-1 pt-2">
-          <RecommendationMap
-            origin={universityLocation}
-            destination={destination}
-          />
+          {universityLocation !== null ? (
+            <RecommendationMap
+              origin={universityLocation}
+              destination={destination}
+            />
+          ) : (
+            <div className="grid size-full place-items-center rounded-2xl border border-line bg-surface p-6 text-center text-sm font-bold text-ink-muted">
+              {isUniversityLocationLoading
+                ? "大学の位置を読み込んでいます。"
+                : hasUniversityLocationError
+                  ? "大学の位置を取得できませんでした。"
+                  : "大学の位置が未設定です。"}
+            </div>
+          )}
         </div>
       ) : null}
 
       <div className="lg:hidden">
         <BottomSheet
           isOpen={isBottomSheetOpen}
-          title={currentItem?.recommendation.name}
+          title={currentItem?.restaurant.name}
           onOpen={openBottomSheet}
           onClose={closeBottomSheet}
         >
@@ -164,10 +220,13 @@ export function RecommendationsScreen() {
                     WALK
                   </p>
                   <p className="text-lg font-black text-ink">
-                    {currentItem.recommendation.durationMinutes}分
+                    {toWalkingMinutes(
+                      currentItem.restaurant.campusToRestaurantSeconds,
+                    )}
+                    分
                   </p>
                   <p className="mt-1 text-xs text-ink-muted">
-                    大学から {currentItem.recommendation.distanceMeters}m
+                    大学から {currentItem.restaurant.distanceMeters}m
                   </p>
                 </div>
                 <div className="rounded-2xl bg-surface-muted p-4">
@@ -175,15 +234,25 @@ export function RecommendationsScreen() {
                     BUDGET
                   </p>
                   <p className="text-lg font-black text-ink">
-                    約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+                    {formatPriceRange(currentItem.restaurant.priceRange)}
                   </p>
                 </div>
               </div>
 
+              {universityLocation === null ? (
+                <p className="mt-3 text-center text-xs font-bold text-ink-muted">
+                  {isUniversityLocationLoading
+                    ? "大学の位置を読み込んでいます。"
+                    : hasUniversityLocationError
+                      ? "大学の位置を取得できませんでした。"
+                      : "大学の位置が未設定です。"}
+                </p>
+              ) : null}
               <button
-                className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
+                className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
                 type="button"
                 onClick={showMobileMap}
+                disabled={universityLocation === null}
               >
                 マップを表示する
               </button>

@@ -124,6 +124,17 @@ export const initialSetupInputSchema = z
 /** ヘルスチェックAPIのレスポンス。 */
 export const healthOutputSchema = z.object({ ok: z.literal(true) });
 
+/** 初期設定APIのステータスレスポンス。既知の大学座標を含む。 */
+export const initialSetupStatusOutputSchema = z.object({
+  isCompleted: z.boolean(),
+  campusLocation: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .nullable(),
+});
+
 /** 推薦生成APIの入力型。 */
 export type GenerateRecommendationsInput = z.infer<
   typeof GenerateRecommendationsInputSchema
@@ -154,3 +165,8 @@ export type InitialSetupInput = z.output<typeof initialSetupInputSchema>;
 
 /** ヘルスチェックAPIのレスポンス型。 */
 export type HealthOutput = z.infer<typeof healthOutputSchema>;
+
+/** 初期設定ステータスAPIのレスポンス型。 */
+export type InitialSetupStatusOutput = z.infer<
+  typeof initialSetupStatusOutputSchema
+>;

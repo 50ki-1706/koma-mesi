@@ -5,7 +5,13 @@
 import { ORPCError, os } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import { userPreferences } from "@/db/schema";
-import { healthOutputSchema, initialSetupInputSchema } from "@/shared/schema";
+import type { GeocodedLocation } from "@/shared/campus/geocoding";
+import { GooglePlacesError } from "@/shared/recommendations/googlePlaces";
+import {
+  healthOutputSchema,
+  initialSetupInputSchema,
+  initialSetupStatusOutputSchema,
+} from "@/shared/schema";
 import type { ORPCContext } from "./context";
 import { recommendationRouter } from "./recommendation";
 
@@ -40,14 +46,23 @@ const initialSetupRouter = base.router({
       const userId = context.session.user.id;
       const campusAddress = `〒${input.postalCode} ${input.prefecture}${input.streetAddress}`;
       const lunchDaysStr = input.lunchDays.join(",");
+      let location: GeocodedLocation | null;
+      try {
+        location = await context.geocodeAddress(campusAddress);
+      } catch (error) {
+        if (error instanceof GooglePlacesError) {
+          throw error;
+        }
+        location = null;
+      }
 
       await context.db
         .insert(userPreferences)
         .values({
           userId,
           campusAddress,
-          campusLatitude: null,
-          campusLongitude: null,
+          campusLatitude: location?.latitude ?? null,
+          campusLongitude: location?.longitude ?? null,
           lunchStartTime: input.lunchStartTime,
           lunchEndTime: input.lunchEndTime,
           lunchDays: lunchDaysStr,
@@ -56,8 +71,8 @@ const initialSetupRouter = base.router({
           target: userPreferences.userId,
           set: {
             campusAddress,
-            campusLatitude: null,
-            campusLongitude: null,
+            campusLatitude: location?.latitude ?? null,
+            campusLongitude: location?.longitude ?? null,
             lunchStartTime: input.lunchStartTime,
             lunchEndTime: input.lunchEndTime,
             lunchDays: lunchDaysStr,
@@ -68,14 +83,20 @@ const initialSetupRouter = base.router({
       return { success: true };
     }),
 
-  /** Returns whether the authenticated user has completed initial setup. */
-  status: protectedBase.handler(async ({ context }) => {
-    const userId = context.session.user.id;
-    const prefs = await context.db.query.userPreferences.findFirst({
-      where: eq(userPreferences.userId, userId),
-    });
-    return { isCompleted: !!prefs };
-  }),
+  /** Returns whether the authenticated user has completed initial setup, and their campus location if known. */
+  status: protectedBase
+    .output(initialSetupStatusOutputSchema)
+    .handler(async ({ context }) => {
+      const userId = context.session.user.id;
+      const prefs = await context.db.query.userPreferences.findFirst({
+        where: eq(userPreferences.userId, userId),
+      });
+      const campusLocation =
+        prefs?.campusLatitude != null && prefs.campusLongitude != null
+          ? { latitude: prefs.campusLatitude, longitude: prefs.campusLongitude }
+          : null;
+      return { isCompleted: !!prefs, campusLocation };
+    }),
 });
 
 /** アプリケーションが公開するoRPCルーター。 */

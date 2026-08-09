@@ -9,7 +9,11 @@ import type { PointerEvent } from "react";
 import { useRef } from "react";
 import { RecommendationCard } from "@/app/recommendations/RecommendationCard";
 import { SWIPE_THRESHOLD_PX } from "@/constants/constants";
-import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
+import {
+  type FeaturedRecommendation,
+  formatPriceRange,
+} from "@/hooks/useRecommendations";
+import { toWalkingMinutes } from "@/shared/recommendations/format";
 
 interface RecommendationCarouselProps {
   items: FeaturedRecommendation[];
@@ -107,7 +111,7 @@ export function RecommendationCarousel({
         onPointerUp={handlePointerUp}
       >
         <RecommendationCard
-          key={currentItem.recommendation.id}
+          key={currentItem.restaurant.id}
           item={currentItem}
           onSelect={handleSelectCard}
         />
@@ -118,9 +122,10 @@ export function RecommendationCarousel({
             WALK
           </p>
           <p className="font-black text-ink">
-            {currentItem.recommendation.durationMinutes}分
+            {toWalkingMinutes(currentItem.restaurant.campusToRestaurantSeconds)}
+            分
             <span className="ml-2 text-xs font-medium text-ink-muted">
-              大学から {currentItem.recommendation.distanceMeters}m
+              大学から {currentItem.restaurant.distanceMeters}m
             </span>
           </p>
         </div>
@@ -129,14 +134,14 @@ export function RecommendationCarousel({
             BUDGET
           </p>
           <p className="font-black text-ink">
-            約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+            {formatPriceRange(currentItem.restaurant.priceRange)}
           </p>
         </div>
       </div>
       <div className="mt-4 flex shrink-0 items-center justify-center gap-1.5">
         {items.map((item, index) => (
           <span
-            key={item.genre.id}
+            key={item.category.id}
             className={`h-1.5 rounded-full transition-all ${
               index === currentIndex ? "w-6 bg-brand" : "w-1.5 bg-line"
             }`}
