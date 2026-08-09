@@ -137,21 +137,33 @@ export function useRecommendations(): RecommendationsController {
 
   /**
    * ログインユーザーの保存済み推薦をDBから取得する。
+   * 初回読み込み時はエラーをerrorMessageへ反映するが、生成直後の再取得（reportInitialError:
+   * false）では失敗を握りつぶさず呼び出し元へ伝播し、generationErrorMessage側で扱わせる。
    *
+   * @param options.reportInitialError - 失敗時にerrorMessageへ反映するか。既定はtrue。
    * @returns 取得処理が完了したときに解決するPromise。
    */
-  const fetchRecommendations = useCallback(async (): Promise<void> => {
-    try {
-      const result = await orpc.recommendation.getDaily({});
-      setItems(toFeaturedRecommendations(result));
-      setErrorMessage(null);
-    } catch (error) {
-      console.error("Failed to fetch recommendations:", error);
-      setErrorMessage("おすすめのお店を取得できませんでした。");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const fetchRecommendations = useCallback(
+    async ({ reportInitialError = true } = {}): Promise<void> => {
+      try {
+        const result = await orpc.recommendation.getDaily({});
+        setItems(toFeaturedRecommendations(result));
+        if (reportInitialError) {
+          setErrorMessage(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch recommendations:", error);
+        if (reportInitialError) {
+          setErrorMessage("おすすめのお店を取得できませんでした。");
+        } else {
+          throw error;
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void fetchRecommendations();
@@ -226,7 +238,7 @@ export function useRecommendations(): RecommendationsController {
     setIsGenerating(true);
     orpc.recommendation
       .generate({})
-      .then(() => fetchRecommendations())
+      .then(() => fetchRecommendations({ reportInitialError: false }))
       .catch((error: unknown) => {
         console.error("Failed to generate recommendations:", error);
         setGenerationErrorMessage("おすすめを生成できませんでした。");
