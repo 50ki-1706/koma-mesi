@@ -14,6 +14,7 @@ type AuthenticatedORPCContext = Omit<ORPCContext, "session"> & {
   session: NonNullable<ORPCContext["session"]>;
 };
 
+/** Restricts procedures to requests with an authenticated session. */
 const protectedBase = base.use<AuthenticatedORPCContext>(
   async ({ context, next }) => {
     if (!context.session) {
@@ -36,26 +37,38 @@ const weekdayValues = WEEKDAYS.map(({ value }) => value) as [
   ...WeekdayValue[],
 ];
 
-const initialSetupInputSchema = z.object({
-  postalCode: z.string().min(1).trim(),
-  prefecture: z.string().min(1).trim(),
-  streetAddress: z.string().min(1).trim(),
-  lunchStartTime: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format"),
-  lunchEndTime: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format"),
-  lunchDays: z
-    .enum(weekdayValues)
-    .array()
-    .min(1, "At least one day is required")
-    .transform((days) =>
-      [...new Set(days)].sort(
-        (a, b) =>
-          WEEKDAYS.findIndex((w) => w.value === a) -
-          WEEKDAYS.findIndex((w) => w.value === b),
+/** Validates a time in bounded, zero-padded 24-hour HH:MM notation. */
+const boundedTimeSchema = z
+  .string()
+  .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Invalid time format");
+
+/** Validates and normalizes the input required to complete initial setup. */
+const initialSetupInputSchema = z
+  .object({
+    postalCode: z.string().trim().min(1),
+    prefecture: z.string().trim().min(1),
+    streetAddress: z.string().trim().min(1),
+    lunchStartTime: boundedTimeSchema,
+    lunchEndTime: boundedTimeSchema,
+    lunchDays: z
+      .enum(weekdayValues)
+      .array()
+      .min(1, "At least one day is required")
+      .transform((days) =>
+        [...new Set(days)].sort(
+          (a, b) =>
+            WEEKDAYS.findIndex((w) => w.value === a) -
+            WEEKDAYS.findIndex((w) => w.value === b),
+        ),
       ),
-    ),
-});
+  })
+  .refine(({ lunchStartTime, lunchEndTime }) => lunchStartTime < lunchEndTime, {
+    message: "Lunch start time must be before lunch end time",
+    path: ["lunchEndTime"],
+  });
 
 const initialSetupRouter = base.router({
+  /** Persists the authenticated user's campus address and lunch schedule. */
   complete: protectedBase
     .input(initialSetupInputSchema)
     .handler(async ({ input, context }) => {
@@ -78,15 +91,19 @@ const initialSetupRouter = base.router({
           target: userPreferences.userId,
           set: {
             campusAddress,
+            campusLatitude: null,
+            campusLongitude: null,
             lunchStartTime: input.lunchStartTime,
             lunchEndTime: input.lunchEndTime,
             lunchDays: lunchDaysStr,
+            updatedAt: new Date(),
           },
         });
 
       return { success: true };
     }),
 
+  /** Returns whether the authenticated user has completed initial setup. */
   status: protectedBase.handler(async ({ context }) => {
     const userId = context.session.user.id;
     const prefs = await context.db.query.userPreferences.findFirst({
