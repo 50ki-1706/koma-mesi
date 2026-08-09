@@ -42,3 +42,7 @@ koma-mesiは、大学の限られた昼休みの時間を、効率的に、そ�
 | macOS | [docs/setup/mac/README.ja.md](./docs/setup/mac/README.ja.md) |
 | Linux | [docs/setup/linux/README.ja.md](./docs/setup/linux/README.ja.md) |
 | Window(wsl2) | [docs/setup/windows/README.ja.md](./docs/setup/windows/README.ja.md) |
+
+## APIドキュメント
+
+開発サーバー起動後、[http://localhost:3000/api/openapi](http://localhost:3000/api/openapi) で apiドキュメント (Swagger UI) にアクセスできます。
