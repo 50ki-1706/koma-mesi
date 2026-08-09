@@ -72,7 +72,8 @@ export function useInitialSetup(): InitialSetupFormController {
           setIsCheckingSetup(false);
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Failed to check initial setup status:", error);
         if (!cancelled) {
           setIsSetupCompleted(false);
           setCheckedUserId(userId);
@@ -162,8 +163,8 @@ export function useInitialSetup(): InitialSetupFormController {
       });
 
       router.push(INITIAL_SETUP_DESTINATION);
-    } catch {
-      // Keep form visible on error so user can retry
+    } catch (error) {
+      console.error("Failed to complete initial setup:", error);
     }
   };
 
