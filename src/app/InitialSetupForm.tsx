@@ -328,7 +328,9 @@ function LoginPanel({ onGoogleSignIn }: LoginPanelProps) {
         className="relative w-full max-w-sm rounded-[2rem] border border-line bg-surface/95 px-7 py-8 text-center shadow-[0_24px_80px_oklch(0.45_0.08_70/0.14)] sm:px-10"
         aria-labelledby="login-title"
       >
-        <KomaMeshiLogo className="mx-auto w-28" />
+        <div className="mx-auto w-28" role="img" aria-label="Koma Mesi">
+          <KomaMeshiLogo className="w-full" />
+        </div>
         <p className="mt-5 text-[0.65rem] font-black tracking-[0.22em] text-brand-hover">
           WELCOME
         </p>
