@@ -1,6 +1,6 @@
 /**
  * 飲食店レコメンドページのデータ取得と表示状態を管理する。
- * ジャンルの切り替えと、ボトムシート・モバイル地図の表示状態を提供する。
+ * 推薦生成フェーズ、ジャンルの切り替え、ボトムシート・モバイル地図の表示状態を提供する。
  */
 
 "use client";
@@ -95,6 +95,9 @@ export function formatPriceRange(priceRange: RecommendationPriceRange): string {
   return `${start}〜¥${priceRange.endPrice.toLocaleString()}`;
 }
 
+/** 推薦の自動生成フローの現在のフェーズ。 */
+export type GenerationPhase = "idle" | "generating" | "refreshing" | "empty";
+
 /**
  * おすすめ画面の表示状態と操作を提供する。
  */
@@ -111,6 +114,8 @@ export interface RecommendationsController {
   /** モバイル viewport で地図ビューを表示しているか。 */
   isMobileMapVisible: boolean;
   isGenerating: boolean;
+  /** 推薦の自動生成フローの現在のフェーズ。 */
+  generationPhase: GenerationPhase;
   handleSwipeNext: () => void;
   handleSwipePrevious: () => void;
   openBottomSheet: () => void;
@@ -135,6 +140,8 @@ export function useRecommendations(): RecommendationsController {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isMobileMapVisible, setIsMobileMapVisible] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationPhase, setGenerationPhase] =
+    useState<GenerationPhase>("idle");
 
   /**
    * ログインユーザーの保存済み推薦をDBから取得する。
@@ -142,10 +149,12 @@ export function useRecommendations(): RecommendationsController {
    * false）では失敗を握りつぶさず呼び出し元へ伝播し、generationErrorMessage側で扱わせる。
    *
    * @param options.reportInitialError - 失敗時にerrorMessageへ反映するか。既定はtrue。
-   * @returns 取得処理が完了したときに解決するPromise。
+   * @returns 取得成功時に取得したアイテムの配列。失敗時は空配列を返す。
    */
   const fetchRecommendations = useCallback(
-    async ({ reportInitialError = true } = {}): Promise<void> => {
+    async ({
+      reportInitialError = true,
+    } = {}): Promise<FeaturedRecommendation[]> => {
       try {
         const result = await orpc.recommendation.getDaily({});
         const newItems = toFeaturedRecommendations(result);
@@ -156,10 +165,12 @@ export function useRecommendations(): RecommendationsController {
         if (reportInitialError) {
           setErrorMessage(null);
         }
+        return newItems;
       } catch (error) {
         console.error("Failed to fetch recommendations:", error);
         if (reportInitialError) {
           setErrorMessage("おすすめのお店を取得できませんでした。");
+          return [];
         } else {
           throw error;
         }
@@ -170,9 +181,54 @@ export function useRecommendations(): RecommendationsController {
     [],
   );
 
+  /**
+   * 当日分の推薦を生成し、成功したら一覧を再取得する。
+   * 初回の自動生成と、生成失敗時の再試行で使用する。
+   *
+   * @returns なし。
+   */
+  const handleGenerate = useCallback((): void => {
+    if (isGenerating) return;
+    setGenerationErrorMessage(null);
+    setGenerationPhase("generating");
+    setIsGenerating(true);
+    orpc.recommendation
+      .generate({})
+      .then(() => {
+        setGenerationPhase("refreshing");
+        return fetchRecommendations({ reportInitialError: false });
+      })
+      .then((newItems) => {
+        setGenerationPhase(newItems.length === 0 ? "empty" : "idle");
+      })
+      .catch((_error: unknown) => {
+        setGenerationErrorMessage("おすすめを生成できませんでした。");
+      })
+      .finally(() => setIsGenerating(false));
+  }, [isGenerating, fetchRecommendations]);
+
   useEffect(() => {
     void fetchRecommendations();
   }, [fetchRecommendations]);
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      !errorMessage &&
+      items.length === 0 &&
+      !isGenerating &&
+      generationPhase === "idle"
+    ) {
+      handleGenerate();
+    }
+  }, [
+    isLoading,
+    errorMessage,
+    items.length,
+    isGenerating,
+    generationPhase,
+    handleGenerate,
+  ]);
 
   /**
    * 次のジャンルへ表示を進める（末尾の次は先頭に戻る）。
@@ -229,30 +285,6 @@ export function useRecommendations(): RecommendationsController {
     setIsMobileMapVisible(false);
   };
 
-  /**
-   * 当日分の推薦を手動生成し、成功したら一覧を再取得する。
-   * Cronの実行を待たずに動作確認できるようにするための操作。
-   *
-   * @returns なし。
-   */
-  const handleGenerate = (): void => {
-    if (isGenerating) {
-      return;
-    }
-    setGenerationErrorMessage(null);
-    setIsGenerating(true);
-    orpc.recommendation
-      .generate({})
-      .then(() => fetchRecommendations({ reportInitialError: false }))
-      .catch((error: unknown) => {
-        console.error("Failed to generate recommendations:", error);
-        setGenerationErrorMessage("おすすめを生成できませんでした。");
-      })
-      .finally(() => {
-        setIsGenerating(false);
-      });
-  };
-
   return {
     isLoading,
     errorMessage,
@@ -263,6 +295,7 @@ export function useRecommendations(): RecommendationsController {
     isBottomSheetOpen,
     isMobileMapVisible,
     isGenerating,
+    generationPhase,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,

@@ -200,6 +200,18 @@ export function useInitialSetup(): InitialSetupFormController {
       });
 
       setErrorMessage(null);
+
+      // Auto-generate first recommendations after setup completion
+      try {
+        await orpc.recommendation.generate({});
+      } catch (generateError) {
+        console.error(
+          "Failed to generate initial recommendations:",
+          generateError,
+        );
+        // Don't block navigation - recommendations page has fallback auto-trigger
+      }
+
       router.push(INITIAL_SETUP_DESTINATION);
     } catch (error) {
       console.error("Failed to complete initial setup:", error);
