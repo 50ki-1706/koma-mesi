@@ -94,6 +94,13 @@ export const userPreferences = sqliteTable(
     campusAddress: text("campus_address").notNull(),
     campusLatitude: real("campus_latitude"),
     campusLongitude: real("campus_longitude"),
+    lunchStartTime: text("lunch_start_time"),
+    lunchEndTime: text("lunch_end_time"),
+    /**
+     * Comma-delimited lunch weekdays persisted using the exact vocabulary
+     * monday,tuesday,wednesday,thursday,friday.
+     */
+    lunchDays: text("lunch_days"),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -106,6 +113,18 @@ export const userPreferences = sqliteTable(
     check(
       "user_preferences_campus_coordinates_check",
       sql`(${table.campusLatitude} is null and ${table.campusLongitude} is null) or (${table.campusLatitude} is not null and ${table.campusLongitude} is not null and ${table.campusLatitude} between -90 and 90 and ${table.campusLongitude} between -180 and 180)`,
+    ),
+    check(
+      "user_preferences_lunch_start_time_check",
+      sql`${table.lunchStartTime} is null or (length(${table.lunchStartTime}) = 5 and (substr(${table.lunchStartTime}, 1, 2) glob '[01][0-9]' or substr(${table.lunchStartTime}, 1, 2) glob '2[0-3]') and substr(${table.lunchStartTime}, 3, 1) = ':' and substr(${table.lunchStartTime}, 4, 2) glob '[0-5][0-9]')`,
+    ),
+    check(
+      "user_preferences_lunch_end_time_check",
+      sql`${table.lunchEndTime} is null or (length(${table.lunchEndTime}) = 5 and (substr(${table.lunchEndTime}, 1, 2) glob '[01][0-9]' or substr(${table.lunchEndTime}, 1, 2) glob '2[0-3]') and substr(${table.lunchEndTime}, 3, 1) = ':' and substr(${table.lunchEndTime}, 4, 2) glob '[0-5][0-9]')`,
+    ),
+    check(
+      "user_preferences_lunch_time_order_check",
+      sql`${table.lunchStartTime} is null or ${table.lunchEndTime} is null or ${table.lunchStartTime} < ${table.lunchEndTime}`,
     ),
   ],
 );

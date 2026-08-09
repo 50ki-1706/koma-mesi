@@ -8,7 +8,7 @@
 import type { PointerEvent } from "react";
 import { useRef } from "react";
 import { RecommendationCard } from "@/app/recommendations/RecommendationCard";
-import { SWIPE_THRESHOLD_PX } from "@/constants/recommendations";
+import { SWIPE_THRESHOLD_PX } from "@/constants/gestures";
 import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
 
 interface RecommendationCarouselProps {
@@ -45,6 +45,7 @@ export function RecommendationCarousel({
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>): void => {
     startXRef.current = event.clientX;
     didSwipeRef.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   /**
@@ -63,10 +64,10 @@ export function RecommendationCarousel({
     const deltaX = event.clientX - startX;
     if (deltaX >= SWIPE_THRESHOLD_PX) {
       didSwipeRef.current = true;
-      onSwipeNext();
+      onSwipePrevious();
     } else if (deltaX <= -SWIPE_THRESHOLD_PX) {
       didSwipeRef.current = true;
-      onSwipePrevious();
+      onSwipeNext();
     }
   };
 
@@ -100,12 +101,37 @@ export function RecommendationCarousel({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div
-        className="min-h-0 flex-1 touch-pan-y"
+        className="relative min-h-0 flex-1 touch-pan-y select-none"
         onPointerCancel={handlePointerCancel}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
-        <RecommendationCard item={currentItem} onSelect={handleSelectCard} />
+        <RecommendationCard
+          key={currentItem.recommendation.id}
+          item={currentItem}
+          onSelect={handleSelectCard}
+        />
+      </div>
+      <div className="mt-4 hidden shrink-0 grid-cols-2 gap-3 lg:grid">
+        <div className="rounded-2xl bg-brand-soft p-4">
+          <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
+            WALK
+          </p>
+          <p className="font-black text-ink">
+            {currentItem.recommendation.durationMinutes}分
+            <span className="ml-2 text-xs font-medium text-ink-muted">
+              大学から {currentItem.recommendation.distanceMeters}m
+            </span>
+          </p>
+        </div>
+        <div className="rounded-2xl bg-surface-muted p-4">
+          <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-ink-muted">
+            BUDGET
+          </p>
+          <p className="font-black text-ink">
+            約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+          </p>
+        </div>
       </div>
       <div className="mt-4 flex shrink-0 items-center justify-center gap-1.5">
         {items.map((item, index) => (

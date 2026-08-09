@@ -1,6 +1,6 @@
 /**
  * 飲食店レコメンドページのデータ取得と表示状態を管理する。
- * ジャンルの切り替え（スワイプ）とボトムシートの開閉を提供する。
+ * ジャンルの切り替えと、ボトムシート・モバイル地図の表示状態を提供する。
  */
 
 "use client";
@@ -27,6 +27,7 @@ export interface FeaturedRecommendation {
     distanceMeters: number;
     durationMinutes: number;
     photoUrl: string;
+    photoUrls: string[];
     priceYen: number;
     platformUrl: string;
     isFeatured: boolean;
@@ -50,6 +51,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 450,
       durationMinutes: 6,
       photoUrl: "https://picsum.photos/seed/ramen/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/ramen/600/400",
+        "https://picsum.photos/seed/ramen-noodles/600/400",
+        "https://picsum.photos/seed/ramen-counter/600/400",
+      ],
       priceYen: 850,
       platformUrl: "https://example.com/ramen",
       isFeatured: true,
@@ -69,6 +75,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 320,
       durationMinutes: 4,
       photoUrl: "https://picsum.photos/seed/curry/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/curry/600/400",
+        "https://picsum.photos/seed/curry-spice/600/400",
+        "https://picsum.photos/seed/curry-table/600/400",
+      ],
       priceYen: 780,
       platformUrl: "https://example.com/curry",
       isFeatured: true,
@@ -88,6 +99,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 600,
       durationMinutes: 8,
       photoUrl: "https://picsum.photos/seed/teishoku/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/teishoku/600/400",
+        "https://picsum.photos/seed/teishoku-dish/600/400",
+        "https://picsum.photos/seed/teishoku-room/600/400",
+      ],
       priceYen: 950,
       platformUrl: "https://example.com/teishoku",
       isFeatured: true,
@@ -107,6 +123,11 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
       distanceMeters: 280,
       durationMinutes: 3,
       photoUrl: "https://picsum.photos/seed/cafe/600/400",
+      photoUrls: [
+        "https://picsum.photos/seed/cafe/600/400",
+        "https://picsum.photos/seed/cafe-sandwich/600/400",
+        "https://picsum.photos/seed/cafe-coffee/600/400",
+      ],
       priceYen: 690,
       platformUrl: "https://example.com/cafe",
       isFeatured: true,
@@ -117,30 +138,39 @@ const DEMO_ITEMS: FeaturedRecommendation[] = [
 ];
 
 /** レコメンドページの表示状態と操作をまとめたコントローラー。 */
+/**
+ * おすすめ画面の表示状態と操作を提供する。
+ */
 export interface RecommendationsController {
+  /** モバイル viewport で地図ビューを表示しているか。 */
   isLoading: boolean;
   errorMessage: string | null;
   items: FeaturedRecommendation[];
   currentIndex: number;
   currentItem: FeaturedRecommendation | null;
   isBottomSheetOpen: boolean;
+  /** モバイル viewport で地図ビューを表示しているか。 */
+
+  isMobileMapVisible: boolean;
   handleSwipeNext: () => void;
   handleSwipePrevious: () => void;
   openBottomSheet: () => void;
   closeBottomSheet: () => void;
+  showMobileMap: () => void;
+  hideMobileMap: () => void;
 }
 
 /**
  * ジャンルごとのおすすめ店データを取得し、表示状態を返す。
  *
- * @returns 取得結果、現在表示中のジャンルindex、ボトムシートの開閉操作。
- */
+ * @returns 取得結果、現在位置、ボトムシートとモバイル地図の表示操作。 */
 export function useRecommendations(): RecommendationsController {
   const [items, setItems] = useState<FeaturedRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isMobileMapVisible, setIsMobileMapVisible] = useState(false);
 
   useEffect(() => {
     // TODO: 表示確認用の一時的なデモデータ表示。DB投入後は元に戻す:
@@ -196,6 +226,25 @@ export function useRecommendations(): RecommendationsController {
     setIsBottomSheetOpen(false);
   };
 
+  /**
+   * ボトムシートを閉じ、店舗カードの位置にモバイル用地図を表示する。
+   *
+   * @returns なし。
+   */
+  const showMobileMap = (): void => {
+    setIsBottomSheetOpen(false);
+    setIsMobileMapVisible(true);
+  };
+
+  /**
+   * モバイル用地図を閉じ、店舗カードへ戻す。
+   *
+   * @returns なし。
+   */
+  const hideMobileMap = (): void => {
+    setIsMobileMapVisible(false);
+  };
+
   return {
     isLoading,
     errorMessage,
@@ -203,9 +252,12 @@ export function useRecommendations(): RecommendationsController {
     currentIndex,
     currentItem: items[currentIndex] ?? null,
     isBottomSheetOpen,
+    isMobileMapVisible,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,
     closeBottomSheet,
+    showMobileMap,
+    hideMobileMap,
   };
 }

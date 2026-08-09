@@ -70,8 +70,10 @@ export const DEFAULT_LUNCH_DAYS: WeekdayValue[] = [
 ];
 
 export const INITIAL_SETUP_DESTINATION = "/recommendations";
-export const INITIAL_SETUP_STORAGE_KEY_PREFIX =
-  "koma-mesi:initial-setup-completed";
 
 export const INITIAL_SETUP_DETAILS_STORAGE_KEY_PREFIX =
   "koma-mesi:initial-setup-details";
+
+/** 終了時刻が開始時刻以前になっている場合のエラーメッセージ。 */
+export const LUNCH_TIME_RANGE_ERROR_MESSAGE =
+  "終了時刻は開始時刻より後の時間を入力してください。";

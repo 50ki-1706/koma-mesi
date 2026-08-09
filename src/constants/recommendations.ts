@@ -1,10 +1,9 @@
 /**
  * 飲食店レコメンドページで使用する定数を定義する。
- * ルートパスとスワイプ判定の閾値を一箇所に集約する。
- */
+ * レコメンド画面への遷移に使用するルートパスを定義する。 */
 
 /** レコメンドページのルートパス。 */
 export const RECOMMENDATIONS_PATH = "/recommendations";
 
-/** スワイプとして判定する最小移動距離（px）。 */
-export const SWIPE_THRESHOLD_PX = 48;
+/** 店舗カードの写真を切り替える間隔（ミリ秒）。 */
+export const RECOMMENDATION_PHOTO_INTERVAL_MS = 5000;
