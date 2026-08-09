@@ -149,10 +149,12 @@ export function useRecommendations(): RecommendationsController {
    * false）では失敗を握りつぶさず呼び出し元へ伝播し、generationErrorMessage側で扱わせる。
    *
    * @param options.reportInitialError - 失敗時にerrorMessageへ反映するか。既定はtrue。
-   * @returns 取得処理が完了したときに解決するPromise。
+   * @returns 取得成功時に取得したアイテムの配列。失敗時は空配列を返す。
    */
   const fetchRecommendations = useCallback(
-    async ({ reportInitialError = true } = {}): Promise<void> => {
+    async ({
+      reportInitialError = true,
+    } = {}): Promise<FeaturedRecommendation[]> => {
       try {
         const result = await orpc.recommendation.getDaily({});
         const newItems = toFeaturedRecommendations(result);
@@ -163,10 +165,12 @@ export function useRecommendations(): RecommendationsController {
         if (reportInitialError) {
           setErrorMessage(null);
         }
+        return newItems;
       } catch (error) {
         console.error("Failed to fetch recommendations:", error);
         if (reportInitialError) {
           setErrorMessage("おすすめのお店を取得できませんでした。");
+          return [];
         } else {
           throw error;
         }
@@ -190,16 +194,13 @@ export function useRecommendations(): RecommendationsController {
     setIsGenerating(true);
     orpc.recommendation
       .generate({})
-      .then(() =>
-        fetchRecommendations({ reportInitialError: false }).then(() => {
-          setItems((currentItems) => {
-            if (currentItems.length === 0) {
-              setGenerationPhase("empty");
-            }
-            return currentItems;
-          });
-        }),
-      )
+      .then(() => {
+        setGenerationPhase("refreshing");
+        return fetchRecommendations({ reportInitialError: false });
+      })
+      .then((newItems) => {
+        setGenerationPhase(newItems.length === 0 ? "empty" : "idle");
+      })
       .catch((_error: unknown) => {
         setGenerationErrorMessage("おすすめを生成できませんでした。");
       })
@@ -218,7 +219,6 @@ export function useRecommendations(): RecommendationsController {
       !isGenerating &&
       generationPhase === "idle"
     ) {
-      setGenerationPhase("generating");
       handleGenerate();
     }
   }, [
