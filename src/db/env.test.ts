@@ -31,8 +31,50 @@ describe("resolveDatabaseCredentials", () => {
     });
   });
 
+  it("uses VERCEL_TARGET_ENV when VERCEL_ENV is unavailable", () => {
+    const env = {
+      VERCEL_ENV: "",
+      VERCEL_TARGET_ENV: "preview",
+      PREVIEW_TURSO_DATABASE_URL: "libsql://preview.example.com",
+      PREVIEW_TURSO_AUTH_TOKEN: "preview-token",
+    };
+
+    expect(resolveDatabaseCredentials(env)).toEqual({
+      url: "libsql://preview.example.com",
+      authToken: "preview-token",
+    });
+  });
+
+  it("infers preview from scoped credentials when Vercel variables are unavailable", () => {
+    const env = {
+      PREVIEW_TURSO_DATABASE_URL: "libsql://preview.example.com",
+      PREVIEW_TURSO_AUTH_TOKEN: "preview-token",
+    };
+
+    expect(resolveDatabaseCredentials(env)).toEqual({
+      url: "libsql://preview.example.com",
+      authToken: "preview-token",
+    });
+  });
+
+  it("infers production from scoped credentials when Vercel variables are unavailable", () => {
+    const env = {
+      PRODUCTION_TURSO_DATABASE_URL: "libsql://prod.example.com",
+      PRODUCTION_TURSO_AUTH_TOKEN: "prod-token",
+    };
+
+    expect(resolveDatabaseCredentials(env)).toEqual({
+      url: "libsql://prod.example.com",
+      authToken: "prod-token",
+    });
+  });
+
   it('returns the local SQLite file when VERCEL_ENV is "development"', () => {
-    const env = { VERCEL_ENV: "development" };
+    const env = {
+      VERCEL_ENV: "development",
+      PREVIEW_TURSO_DATABASE_URL: "libsql://preview.example.com",
+      PREVIEW_TURSO_AUTH_TOKEN: "preview-token",
+    };
 
     expect(resolveDatabaseCredentials(env)).toEqual({ url: "file:local.db" });
   });
@@ -109,7 +151,20 @@ describe("resolveDatabaseCredentials", () => {
     const env = { VERCEL_ENV: "unknown_value" };
 
     expect(() => resolveDatabaseCredentials(env)).toThrow(
-      "Unsupported VERCEL_ENV: unknown_value",
+      "Unsupported Vercel environment: unknown_value",
+    );
+  });
+
+  it("throws when both remote environments are configured without a Vercel target", () => {
+    const env = {
+      PRODUCTION_TURSO_DATABASE_URL: "libsql://prod.example.com",
+      PRODUCTION_TURSO_AUTH_TOKEN: "prod-token",
+      PREVIEW_TURSO_DATABASE_URL: "libsql://preview.example.com",
+      PREVIEW_TURSO_AUTH_TOKEN: "preview-token",
+    };
+
+    expect(() => resolveDatabaseCredentials(env)).toThrow(
+      "Cannot infer database environment because both production and preview credentials are configured",
     );
   });
 });
