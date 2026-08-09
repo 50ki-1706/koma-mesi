@@ -17,7 +17,11 @@
   --color-ink-muted: oklch(0.53 0.035 70);
   --color-line: oklch(0.88 0.045 84);
   --color-focus: oklch(0.67 0.17 65);
+  --color-danger: oklch(0.55 0.19 25);
   --color-photo-overlay: oklch(0.16 0.025 60 / 0.9);
+  --color-mark-brand: oklch(0.743 0.157 72.5);
+  --color-mark-ink: oklch(0.25 0.03 70);
+  --color-mark-surface: oklch(1 0 0);
   --shadow-recommendation: 0 24px 80px oklch(0.45 0.08 70 / 0.16);
   --shadow-recommendation-hover: 0 28px 90px oklch(0.45 0.08 70 / 0.2);
   --shadow-floating-action: 0 8px 24px oklch(0.27 0.035 67 / 0.2);

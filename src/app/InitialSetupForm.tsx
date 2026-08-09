@@ -5,6 +5,8 @@
 
 import { PREFECTURES, WEEKDAYS } from "@/constants/initialSetup";
 import type { InitialSetupFormController } from "@/hooks/useInitialSetup";
+import { KomaMeshiLogo } from "@/shared/components/KomaMeshiMark/KomaMeshiLogo";
+import { KomaMeshiMark } from "@/shared/components/KomaMeshiMark/KomaMeshiMark";
 
 /**
  * 初期設定フォームを表示する。
@@ -17,6 +19,7 @@ export function InitialSetupForm({
   isAuthenticated,
   userName,
   selectedDays,
+  lunchTimeError,
   handleGoogleSignIn,
   handleSignOut,
   toggleDay,
@@ -57,17 +60,10 @@ export function InitialSetupForm({
       >
         <header className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-3 sm:px-6">
           <div
-            className="grid size-8 place-items-center rounded-xl bg-brand text-surface shadow-sm"
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-surface shadow-sm ring-1 ring-line"
             aria-hidden="true"
           >
-            <svg
-              className="size-5 fill-current"
-              viewBox="0 0 32 32"
-              aria-hidden="true"
-            >
-              <path d="M6.5 6.5h5.8a3.7 3.7 0 0 1 3.7 3.7v15.3h-5.8a3.7 3.7 0 0 1-3.7-3.7V6.5Z" />
-              <path d="M25.5 6.5h-5.8a3.7 3.7 0 0 0-3.7 3.7v15.3h5.8a3.7 3.7 0 0 0 3.7-3.7V6.5Z" />
-            </svg>
+            <KomaMeshiMark className="size-7" />
           </div>
           <p className="text-sm font-black tracking-tight sm:text-base">
             Koma Mesi
@@ -202,9 +198,17 @@ export function InitialSetupForm({
                 <label className="grid gap-1 text-xs font-bold">
                   <span>開始時刻</span>
                   <input
-                    className="h-10 min-w-0 rounded-xl border border-line bg-surface-muted/45 px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft"
+                    className={`h-10 min-w-0 rounded-xl border bg-surface-muted/45 px-3 text-sm outline-none transition focus:ring-2 ${
+                      lunchTimeError !== null
+                        ? "border-danger focus:border-danger focus:ring-danger/20"
+                        : "border-line focus:border-brand focus:ring-brand-soft"
+                    }`}
                     name="lunchStartTime"
                     type="time"
+                    aria-invalid={lunchTimeError !== null}
+                    aria-describedby={
+                      lunchTimeError !== null ? "lunch-time-error" : undefined
+                    }
                     required
                   />
                 </label>
@@ -217,13 +221,30 @@ export function InitialSetupForm({
                 <label className="grid gap-1 text-xs font-bold">
                   <span>終了時刻</span>
                   <input
-                    className="h-10 min-w-0 rounded-xl border border-line bg-surface-muted/45 px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-soft"
+                    className={`h-10 min-w-0 rounded-xl border bg-surface-muted/45 px-3 text-sm outline-none transition focus:ring-2 ${
+                      lunchTimeError !== null
+                        ? "border-danger focus:border-danger focus:ring-danger/20"
+                        : "border-line focus:border-brand focus:ring-brand-soft"
+                    }`}
                     name="lunchEndTime"
                     type="time"
+                    aria-invalid={lunchTimeError !== null}
+                    aria-describedby={
+                      lunchTimeError !== null ? "lunch-time-error" : undefined
+                    }
                     required
                   />
                 </label>
               </div>
+              {lunchTimeError !== null ? (
+                <p
+                  className="mt-2 text-xs font-bold text-danger"
+                  id="lunch-time-error"
+                  role="alert"
+                >
+                  {lunchTimeError}
+                </p>
+              ) : null}
             </fieldset>
 
             <div className="my-4 h-px bg-line sm:my-5" />
@@ -307,20 +328,9 @@ function LoginPanel({ onGoogleSignIn }: LoginPanelProps) {
         className="relative w-full max-w-sm rounded-[2rem] border border-line bg-surface/95 px-7 py-8 text-center shadow-[0_24px_80px_oklch(0.45_0.08_70/0.14)] sm:px-10"
         aria-labelledby="login-title"
       >
-        <div
-          className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand text-surface shadow-md"
-          aria-hidden="true"
-        >
-          <svg
-            className="size-7 fill-current"
-            viewBox="0 0 32 32"
-            aria-hidden="true"
-          >
-            <path d="M6.5 6.5h5.8a3.7 3.7 0 0 1 3.7 3.7v15.3h-5.8a3.7 3.7 0 0 1-3.7-3.7V6.5Z" />
-            <path d="M25.5 6.5h-5.8a3.7 3.7 0 0 0-3.7 3.7v15.3h5.8a3.7 3.7 0 0 0 3.7-3.7V6.5Z" />
-          </svg>
+        <div className="mx-auto w-28" role="img" aria-label="Koma Mesi">
+          <KomaMeshiLogo className="w-full" />
         </div>
-        <p className="mt-2 text-lg font-black tracking-tight">Koma Mesi</p>
         <p className="mt-5 text-[0.65rem] font-black tracking-[0.22em] text-brand-hover">
           WELCOME
         </p>
