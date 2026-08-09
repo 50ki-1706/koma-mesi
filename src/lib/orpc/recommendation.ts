@@ -13,7 +13,7 @@ import {
   GenerateRecommendationsOutputSchema,
   GetRecommendationsInputSchema,
   GetRecommendationsOutputSchema,
-} from "@/shared/recommendations/schemas";
+} from "@/shared/schema";
 import type { ORPCContext } from "./context";
 
 const base = os.$context<ORPCContext>();
