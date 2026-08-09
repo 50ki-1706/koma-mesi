@@ -24,6 +24,7 @@ export interface FeaturedRecommendation {
   };
   restaurant: {
     id: string;
+    googlePlaceId: string;
     name: string;
     address: string;
     latitude: number;
@@ -60,6 +61,7 @@ function toFeaturedRecommendations(
         category: { id: category.id, name: category.category },
         restaurant: {
           id: near.restaurant.id,
+          googlePlaceId: near.restaurant.googlePlaceId,
           name: near.restaurant.name,
           address: near.restaurant.address,
           latitude: near.restaurant.latitude,

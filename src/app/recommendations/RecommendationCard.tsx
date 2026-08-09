@@ -1,11 +1,12 @@
 /**
  * カテゴリ1件分のおすすめ店をカード形式で表示する。
- * 店舗写真は取得していないため、カテゴリ名を表示するプレースホルダーを使う。
+ * 店舗写真はDBに保存していないため、表示時にPlaces API (New)から取得する。
  */
 
 "use client";
 
 import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
+import { useRestaurantPhotoUrl } from "@/hooks/useRestaurantPhotoUrl";
 
 interface RecommendationCardProps {
   item: FeaturedRecommendation;
@@ -16,23 +17,34 @@ interface RecommendationCardProps {
  * おすすめ店1件のカードを表示する。
  *
  * @param props - 表示する店の情報と選択操作。
- * @returns カテゴリ名のプレースホルダーと店名を表示する店舗カード。 */
+ * @returns 店舗写真（取得できるまではカテゴリ名のプレースホルダー）と店名を表示する店舗カード。 */
 export function RecommendationCard({
   item,
   onSelect,
 }: RecommendationCardProps) {
   const { category, restaurant } = item;
+  const photoUrl = useRestaurantPhotoUrl(restaurant.googlePlaceId);
 
   return (
     <article className="group relative h-full min-h-80 w-full overflow-hidden rounded-[2rem] border border-line/80 bg-surface text-left shadow-recommendation transition duration-300 hover:-translate-y-0.5 hover:shadow-recommendation-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99] sm:min-h-96">
-      <div
-        className="absolute inset-0 grid place-items-center bg-brand-soft transition group-hover:scale-[1.02]"
-        aria-hidden="true"
-      >
-        <span className="px-6 text-center text-2xl font-black tracking-tight text-brand-hover sm:text-3xl">
-          {category.name}
-        </span>
-      </div>
+      {photoUrl !== null ? (
+        // biome-ignore lint/performance/noImgElement: 外部の飲食店写真URLを表示するため next/image のドメイン許可設定を避ける
+        <img
+          className="absolute inset-0 size-full object-cover transition group-hover:scale-[1.02]"
+          src={photoUrl}
+          alt={`${restaurant.name}の写真`}
+          draggable={false}
+        />
+      ) : (
+        <div
+          className="absolute inset-0 grid place-items-center bg-brand-soft transition group-hover:scale-[1.02]"
+          aria-hidden="true"
+        >
+          <span className="px-6 text-center text-2xl font-black tracking-tight text-brand-hover sm:text-3xl">
+            {category.name}
+          </span>
+        </div>
+      )}
       <button
         className="absolute inset-0 z-[1] lg:hidden"
         type="button"
