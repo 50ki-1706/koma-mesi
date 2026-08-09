@@ -28,10 +28,13 @@ export function RecommendationsScreen() {
     currentIndex,
     currentItem,
     isBottomSheetOpen,
+    isMobileMapVisible,
     handleSwipeNext,
     handleSwipePrevious,
     openBottomSheet,
     closeBottomSheet,
+    showMobileMap,
+    hideMobileMap,
   } = useRecommendations();
   const universityLocation = useUniversityLocation();
   const isDesktopViewport = useMediaQuery(LG_BREAKPOINT_QUERY);
@@ -83,7 +86,7 @@ export function RecommendationsScreen() {
 
   return (
     <main
-      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 text-ink sm:p-6 lg:flex-row lg:gap-6"
+      className="relative flex h-dvh flex-col overflow-hidden bg-background p-4 pb-32 text-ink sm:p-6 sm:pb-32 lg:flex-row lg:gap-6 lg:pb-6"
       aria-label="おすすめの飲食店"
     >
       <div className="flex min-h-0 flex-1 flex-col lg:max-w-md">
@@ -112,13 +115,29 @@ export function RecommendationsScreen() {
           </Link>
         </header>
 
-        <RecommendationCarousel
-          currentIndex={currentIndex}
-          items={items}
-          onSelectCard={openBottomSheet}
-          onSwipeNext={handleSwipeNext}
-          onSwipePrevious={handleSwipePrevious}
-        />
+        {isMobileMapVisible && !isDesktopViewport && destination !== null ? (
+          <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-line/80 bg-surface shadow-recommendation">
+            <RecommendationMap
+              origin={universityLocation}
+              destination={destination}
+            />
+            <button
+              className="absolute inset-x-4 bottom-4 h-11 rounded-xl bg-surface/95 px-5 text-sm font-black text-ink shadow-floating-action backdrop-blur-sm transition hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
+              type="button"
+              onClick={hideMobileMap}
+            >
+              店舗カードに戻る
+            </button>
+          </div>
+        ) : (
+          <RecommendationCarousel
+            currentIndex={currentIndex}
+            items={items}
+            onSelectCard={openBottomSheet}
+            onSwipeNext={handleSwipeNext}
+            onSwipePrevious={handleSwipePrevious}
+          />
+        )}
       </div>
 
       {destination !== null && isDesktopViewport ? (
@@ -130,22 +149,48 @@ export function RecommendationsScreen() {
         </div>
       ) : null}
 
-      <BottomSheet
-        isOpen={isBottomSheetOpen}
-        title={currentItem?.recommendation.name}
-        onClose={closeBottomSheet}
-      >
-        {currentItem !== null ? (
-          <a
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-black text-ink shadow-[0_8px_20px_oklch(0.65_0.15_75/0.22)] transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
-            href={currentItem.recommendation.platformUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            グルメサイトで見る
-          </a>
-        ) : null}
-      </BottomSheet>
+      <div className="lg:hidden">
+        <BottomSheet
+          isOpen={isBottomSheetOpen}
+          title={currentItem?.recommendation.name}
+          onOpen={openBottomSheet}
+          onClose={closeBottomSheet}
+        >
+          {currentItem !== null ? (
+            <div>
+              <div className="mb-5 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-brand-soft p-4">
+                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-brand-hover">
+                    WALK
+                  </p>
+                  <p className="text-lg font-black text-ink">
+                    {currentItem.recommendation.durationMinutes}分
+                  </p>
+                  <p className="mt-1 text-xs text-ink-muted">
+                    大学から {currentItem.recommendation.distanceMeters}m
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-surface-muted p-4">
+                  <p className="mb-1 text-[0.65rem] font-black tracking-[0.12em] text-ink-muted">
+                    BUDGET
+                  </p>
+                  <p className="text-lg font-black text-ink">
+                    約 ¥{currentItem.recommendation.priceYen.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
+                type="button"
+                onClick={showMobileMap}
+              >
+                マップを表示する
+              </button>
+            </div>
+          ) : null}
+        </BottomSheet>
+      </div>
     </main>
   );
 }
