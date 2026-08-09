@@ -151,13 +151,15 @@ export function BottomSheet({
         aria-label={title === undefined ? "詳細" : undefined}
         aria-labelledby={title !== undefined ? "bottom-sheet-title" : undefined}
         aria-modal={isOpen ? "true" : undefined}
-        role="dialog"
+        role={isOpen ? "dialog" : "region"}
         tabIndex={-1}
       >
         <button
           className="-mx-5 -mt-5 mb-3 flex h-24 w-[calc(100%+2.5rem)] touch-none flex-col items-center justify-start rounded-t-[1.75rem] pt-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-focus"
           type="button"
           aria-label={isOpen ? "店舗詳細を閉じる" : "店舗詳細を開く"}
+          aria-controls="bottom-sheet-content"
+          aria-expanded={isOpen}
           onClick={isOpen ? onClose : onOpen}
           onPointerCancel={() => {
             startYRef.current = null;
@@ -175,7 +177,8 @@ export function BottomSheet({
             </span>
           ) : null}
         </button>
-        <div aria-hidden={!isOpen} inert={!isOpen}>
+        <div id="bottom-sheet-content" aria-hidden={!isOpen} inert={!isOpen}>
+          {" "}
           {children}
         </div>
       </section>
