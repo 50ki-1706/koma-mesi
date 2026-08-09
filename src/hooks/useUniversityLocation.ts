@@ -8,14 +8,24 @@
 import { useEffect, useState } from "react";
 import { orpc } from "@/lib/orpc/client";
 
+/** 大学位置の取得結果とリクエスト状態。 */
+export interface UniversityLocationState {
+  location: google.maps.LatLngLiteral | null;
+  isLoading: boolean;
+  hasError: boolean;
+}
+
 /**
  * ログインユーザーの大学の緯度経度を取得する。
- * @returns 大学の位置。未取得または未設定の場合はnull。
+ *
+ * @returns 大学の位置と、取得中・取得失敗の状態。
  */
-export function useUniversityLocation(): google.maps.LatLngLiteral | null {
+export function useUniversityLocation(): UniversityLocationState {
   const [location, setLocation] = useState<google.maps.LatLngLiteral | null>(
     null,
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,16 +33,26 @@ export function useUniversityLocation(): google.maps.LatLngLiteral | null {
     orpc.initialSetup
       .status()
       .then(({ campusLocation }) => {
-        if (cancelled || campusLocation === null) {
+        if (cancelled) {
           return;
         }
-        setLocation({
-          lat: campusLocation.latitude,
-          lng: campusLocation.longitude,
-        });
+        setLocation(
+          campusLocation === null
+            ? null
+            : {
+                lat: campusLocation.latitude,
+                lng: campusLocation.longitude,
+              },
+        );
+        setIsLoading(false);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
         console.error("Failed to fetch campus location:", error);
+        setHasError(true);
+        setIsLoading(false);
       });
 
     return () => {
@@ -40,5 +60,5 @@ export function useUniversityLocation(): google.maps.LatLngLiteral | null {
     };
   }, []);
 
-  return location;
+  return { location, isLoading, hasError };
 }

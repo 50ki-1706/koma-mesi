@@ -109,8 +109,8 @@ export const DEFAULT_MAP_ZOOM = 16;
 
 // ── Recommendations ──
 
-/** 店舗カードの写真を切り替える間隔（ミリ秒）。 */
-export const RECOMMENDATION_PHOTO_INTERVAL_MS = 5000;
+/** Places API (New) のエンドポイント。 */
+export const GOOGLE_PLACES_API_BASE_URL = "https://places.googleapis.com/v1";
 
 /** Places API (New) から店舗写真を取得する際の最大幅（px）。 */
 export const RECOMMENDATION_PHOTO_MAX_WIDTH_PX = 800;

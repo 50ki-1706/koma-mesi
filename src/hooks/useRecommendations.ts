@@ -99,7 +99,10 @@ export function formatPriceRange(priceRange: RecommendationPriceRange): string {
  */
 export interface RecommendationsController {
   isLoading: boolean;
+  /** 初回取得に失敗した場合のエラーメッセージ。 */
   errorMessage: string | null;
+  /** 推薦生成に失敗した場合のエラーメッセージ。 */
+  generationErrorMessage: string | null;
   items: FeaturedRecommendation[];
   currentIndex: number;
   currentItem: FeaturedRecommendation | null;
@@ -124,6 +127,9 @@ export function useRecommendations(): RecommendationsController {
   const [items, setItems] = useState<FeaturedRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [generationErrorMessage, setGenerationErrorMessage] = useState<
+    string | null
+  >(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isMobileMapVisible, setIsMobileMapVisible] = useState(false);
@@ -216,13 +222,14 @@ export function useRecommendations(): RecommendationsController {
     if (isGenerating) {
       return;
     }
+    setGenerationErrorMessage(null);
     setIsGenerating(true);
     orpc.recommendation
       .generate({})
       .then(() => fetchRecommendations())
       .catch((error: unknown) => {
         console.error("Failed to generate recommendations:", error);
-        setErrorMessage("おすすめを生成できませんでした。");
+        setGenerationErrorMessage("おすすめを生成できませんでした。");
       })
       .finally(() => {
         setIsGenerating(false);
@@ -232,6 +239,7 @@ export function useRecommendations(): RecommendationsController {
   return {
     isLoading,
     errorMessage,
+    generationErrorMessage,
     items,
     currentIndex,
     currentItem: items[currentIndex] ?? null,

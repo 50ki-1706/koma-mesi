@@ -25,6 +25,7 @@
   --shadow-recommendation: 0 24px 80px oklch(0.45 0.08 70 / 0.16);
   --shadow-recommendation-hover: 0 28px 90px oklch(0.45 0.08 70 / 0.2);
   --shadow-floating-action: 0 8px 24px oklch(0.27 0.035 67 / 0.2);
+  --shadow-brand-action: 0 8px 20px oklch(0.65 0.15 75 / 0.22);
   --shadow-bottom-sheet: 0 -24px 60px oklch(0.45 0.08 70 / 0.16);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

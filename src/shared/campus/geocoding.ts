@@ -39,9 +39,10 @@ export class GeocodingError extends Error {
    * ジオコーディングエラーを生成する。
    *
    * @param message - ログに使用するメッセージ。
+   * @param options - 元のエラーなど、診断に必要な追加情報。
    */
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
     this.name = "GeocodingError";
   }
 }
@@ -84,9 +85,13 @@ export async function geocodeAddress(
     });
   } catch (error) {
     if (isTimeoutError(error)) {
-      throw new GeocodingError("Geocodingがタイムアウトしました。");
+      throw new GeocodingError("Geocodingがタイムアウトしました。", {
+        cause: error,
+      });
     }
-    throw error;
+    throw new GeocodingError("Geocodingへの通信に失敗しました。", {
+      cause: error,
+    });
   }
 
   if (!response.ok) {
@@ -98,13 +103,17 @@ export async function geocodeAddress(
   let json: unknown;
   try {
     json = await response.json();
-  } catch {
-    throw new GeocodingError("Geocodingの応答形式が不正です。");
+  } catch (error) {
+    throw new GeocodingError("Geocodingの応答形式が不正です。", {
+      cause: error,
+    });
   }
 
   const parsed = GoogleGeocodingResponseSchema.safeParse(json);
   if (!parsed.success) {
-    throw new GeocodingError("Geocodingの応答形式が不正です。");
+    throw new GeocodingError("Geocodingの応答形式が不正です。", {
+      cause: parsed.error,
+    });
   }
 
   if (parsed.data.status === "ZERO_RESULTS") {
@@ -112,9 +121,7 @@ export async function geocodeAddress(
   }
 
   if (parsed.data.status !== "OK") {
-    throw new GeocodingError(
-      `Geocodingがエラーを返しました（status: ${parsed.data.status}）。`,
-    );
+    throw new GeocodingError("Geocodingがエラーを返しました。");
   }
 
   const location = parsed.data.results[0]?.geometry.location;

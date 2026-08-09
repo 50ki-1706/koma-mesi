@@ -17,6 +17,7 @@ import {
 } from "@/hooks/useRecommendations";
 import { useUniversityLocation } from "@/hooks/useUniversityLocation";
 import { BottomSheet } from "@/shared/components/BottomSheet/BottomSheet";
+import { toWalkingMinutes } from "@/shared/recommendations/format";
 
 /**
  * おすすめ飲食店の一覧画面を表示する。
@@ -27,6 +28,7 @@ export function RecommendationsScreen() {
   const {
     isLoading,
     errorMessage,
+    generationErrorMessage,
     items,
     currentIndex,
     currentItem,
@@ -41,7 +43,11 @@ export function RecommendationsScreen() {
     hideMobileMap,
     handleGenerate,
   } = useRecommendations();
-  const universityLocation = useUniversityLocation();
+  const {
+    location: universityLocation,
+    isLoading: isUniversityLocationLoading,
+    hasError: hasUniversityLocationError,
+  } = useUniversityLocation();
   const isDesktopViewport = useMediaQuery(LG_BREAKPOINT_QUERY);
   const destination = useMemo<google.maps.LatLngLiteral | null>(() => {
     if (currentItem === null) {
@@ -87,13 +93,18 @@ export function RecommendationsScreen() {
             まだおすすめのお店がありません。
           </p>
           <button
-            className="mt-4 h-11 rounded-xl bg-brand px-6 text-sm font-black text-ink shadow-[0_8px_20px_oklch(0.65_0.15_75/0.22)] transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-4 h-11 rounded-xl bg-brand px-6 text-sm font-black text-ink shadow-brand-action transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40"
             type="button"
             onClick={handleGenerate}
             disabled={isGenerating}
           >
             {isGenerating ? "生成しています…" : "今日のおすすめを生成する"}
           </button>
+          {generationErrorMessage !== null ? (
+            <p className="mt-3 text-sm font-bold text-danger" role="alert">
+              {generationErrorMessage}
+            </p>
+          ) : null}
         </div>
       </main>
     );
@@ -130,6 +141,23 @@ export function RecommendationsScreen() {
           </Link>
         </header>
 
+        {generationErrorMessage !== null ? (
+          <div
+            className="mb-3 flex shrink-0 items-center justify-between gap-3 rounded-2xl border border-line bg-surface-muted px-4 py-3 text-sm font-bold text-danger"
+            role="alert"
+          >
+            <p>{generationErrorMessage}</p>
+            <button
+              className="shrink-0 rounded-xl bg-brand px-4 py-2 text-xs font-black text-ink shadow-brand-action transition hover:bg-brand-hover hover:text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40"
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+            >
+              {isGenerating ? "生成しています…" : "再試行"}
+            </button>
+          </div>
+        ) : null}
+
         {isMobileMapVisible &&
         !isDesktopViewport &&
         destination !== null &&
@@ -158,14 +186,22 @@ export function RecommendationsScreen() {
         )}
       </div>
 
-      {destination !== null &&
-      isDesktopViewport &&
-      universityLocation !== null ? (
+      {destination !== null && isDesktopViewport ? (
         <div className="min-h-0 flex-1 pt-2">
-          <RecommendationMap
-            origin={universityLocation}
-            destination={destination}
-          />
+          {universityLocation !== null ? (
+            <RecommendationMap
+              origin={universityLocation}
+              destination={destination}
+            />
+          ) : (
+            <div className="grid size-full place-items-center rounded-2xl border border-line bg-surface p-6 text-center text-sm font-bold text-ink-muted">
+              {isUniversityLocationLoading
+                ? "大学の位置を読み込んでいます。"
+                : hasUniversityLocationError
+                  ? "大学の位置を取得できませんでした。"
+                  : "大学の位置が未設定です。"}
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -184,8 +220,8 @@ export function RecommendationsScreen() {
                     WALK
                   </p>
                   <p className="text-lg font-black text-ink">
-                    {Math.round(
-                      currentItem.restaurant.campusToRestaurantSeconds / 60,
+                    {toWalkingMinutes(
+                      currentItem.restaurant.campusToRestaurantSeconds,
                     )}
                     分
                   </p>
@@ -203,10 +239,20 @@ export function RecommendationsScreen() {
                 </div>
               </div>
 
+              {universityLocation === null ? (
+                <p className="mt-3 text-center text-xs font-bold text-ink-muted">
+                  {isUniversityLocationLoading
+                    ? "大学の位置を読み込んでいます。"
+                    : hasUniversityLocationError
+                      ? "大学の位置を取得できませんでした。"
+                      : "大学の位置が未設定です。"}
+                </p>
+              ) : null}
               <button
-                className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99]"
+                className="mt-3 flex h-11 w-full items-center justify-center rounded-xl border border-line bg-surface px-5 text-sm font-black text-ink transition hover:border-brand hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
                 type="button"
                 onClick={showMobileMap}
+                disabled={universityLocation === null}
               >
                 マップを表示する
               </button>

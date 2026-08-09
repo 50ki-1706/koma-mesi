@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { GeocodingError, geocodeAddress } from "./geocoding";
 
 describe("geocodeAddress", () => {
@@ -27,6 +28,8 @@ describe("geocodeAddress", () => {
     const request = fetchMock.mock.calls[0];
     const requestedUrl = new URL(String(request?.[0]));
     expect(requestedUrl.searchParams.get("address")).toBe("東京都千代田区1-1");
+    expect(requestedUrl.searchParams.get("language")).toBe("ja");
+    expect(requestedUrl.searchParams.get("region")).toBe("jp");
     expect(requestedUrl.searchParams.get("key")).toBe("server-api-key");
   });
 
@@ -37,6 +40,20 @@ describe("geocodeAddress", () => {
 
     const location = await geocodeAddress(
       "存在しない住所",
+      "server-api-key",
+      fetchMock,
+    );
+
+    expect(location).toBeNull();
+  });
+
+  it("OKステータスでも結果が空の場合はnullを返す", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(Response.json({ status: "OK", results: [] }));
+
+    const location = await geocodeAddress(
+      "東京都千代田区1-1",
       "server-api-key",
       fetchMock,
     );
@@ -75,6 +92,53 @@ describe("geocodeAddress", () => {
     await expect(
       geocodeAddress("東京都千代田区1-1", "server-api-key", fetchMock),
     ).rejects.toThrow(GeocodingError);
+  });
+
+  it("座標がスキーマに適合しないJSONはURLを含まないGeocodingErrorにする", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      Response.json({
+        status: "OK",
+        results: [{ geometry: { location: { lat: 91, lng: 139.767125 } } }],
+      }),
+    );
+
+    const error = await geocodeAddress(
+      "東京都千代田区1-1",
+      "server-api-key",
+      fetchMock,
+    ).catch((caughtError: unknown) => caughtError);
+
+    expect(error).toBeInstanceOf(GeocodingError);
+    if (!(error instanceof GeocodingError)) {
+      throw new Error("Expected a GeocodingError");
+    }
+    expect(error.message).not.toContain("https://");
+    expect(error.message).not.toContain("東京都千代田区1-1");
+    expect(error.message).not.toContain("server-api-key");
+    expect(error.cause).toBeInstanceOf(z.ZodError);
+  });
+
+  it("タイムアウト以外の通信エラーは原因を保持したGeocodingErrorにする", async () => {
+    const cause = new Error(
+      "fetch failed for https://maps.googleapis.com/maps/api/geocode/json",
+    );
+    const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(cause);
+
+    const error = await geocodeAddress(
+      "東京都千代田区1-1",
+      "server-api-key",
+      fetchMock,
+    ).catch((caughtError: unknown) => caughtError);
+
+    expect(error).toBeInstanceOf(GeocodingError);
+    if (!(error instanceof GeocodingError)) {
+      throw new Error("Expected a GeocodingError");
+    }
+    expect(error.message).toBe("Geocodingへの通信に失敗しました。");
+    expect(error.message).not.toContain("https://");
+    expect(error.message).not.toContain("東京都千代田区1-1");
+    expect(error.message).not.toContain("server-api-key");
+    expect(error.cause).toBe(cause);
   });
 
   it("タイムアウト時は例外を送出する", async () => {

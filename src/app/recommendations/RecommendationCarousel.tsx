@@ -13,6 +13,7 @@ import {
   type FeaturedRecommendation,
   formatPriceRange,
 } from "@/hooks/useRecommendations";
+import { toWalkingMinutes } from "@/shared/recommendations/format";
 
 interface RecommendationCarouselProps {
   items: FeaturedRecommendation[];
@@ -121,7 +122,7 @@ export function RecommendationCarousel({
             WALK
           </p>
           <p className="font-black text-ink">
-            {Math.round(currentItem.restaurant.campusToRestaurantSeconds / 60)}
+            {toWalkingMinutes(currentItem.restaurant.campusToRestaurantSeconds)}
             分
             <span className="ml-2 text-xs font-medium text-ink-muted">
               大学から {currentItem.restaurant.distanceMeters}m

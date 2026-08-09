@@ -1,15 +1,18 @@
 /**
- * Google Place IDから店舗写真のURLをブラウザ側で都度取得するフック。
- * 写真はDBに保存していないため、表示のたびにPlaces API (New)を呼び出す。
+ * Google Place IDから店舗写真のURLを取得し、カード表示へ提供するフック。
+ * 成功した写真URLはページ内で共有し、不要なPlaces API (New)の呼び出しを避ける。
  */
 
 "use client";
 
 import { useEffect, useState } from "react";
-import { RECOMMENDATION_PHOTO_MAX_WIDTH_PX } from "@/constants/constants";
+import {
+  GOOGLE_PLACES_API_BASE_URL,
+  RECOMMENDATION_PHOTO_MAX_WIDTH_PX,
+} from "@/constants/constants";
 import { useGoogleMapsApiKey } from "@/hooks/useGoogleMapsApiKey";
 
-const GOOGLE_PLACES_API_BASE_URL = "https://places.googleapis.com/v1";
+const restaurantPhotoUrlCache = new Map<string, string>();
 
 /**
  * 値がキー参照可能なオブジェクトかを判定する。
@@ -39,6 +42,16 @@ function extractFirstPhotoName(value: unknown): string | null {
 }
 
 /**
+ * エラーがAbortControllerによる中断かを判定する。
+ *
+ * @param error - 判定対象のエラー。
+ * @returns AbortErrorの場合はtrue。
+ */
+function isAbortError(error: unknown): boolean {
+  return isRecord(error) && error.name === "AbortError";
+}
+
+/**
  * Google Place IDから店舗写真のURLを取得する。
  *
  * @param googlePlaceId - Google Place ID。
@@ -49,40 +62,58 @@ export function useRestaurantPhotoUrl(googlePlaceId: string): string | null {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    setPhotoUrl(null);
+    const cachedPhotoUrl = restaurantPhotoUrlCache.get(googlePlaceId);
+    setPhotoUrl(cachedPhotoUrl ?? null);
+    if (cachedPhotoUrl !== undefined) {
+      return;
+    }
     if (apiKey === undefined) {
       return;
     }
 
     let cancelled = false;
+    const controller = new AbortController();
 
-    fetch(
-      `${GOOGLE_PLACES_API_BASE_URL}/places/${encodeURIComponent(googlePlaceId)}`,
-      {
-        headers: {
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask": "photos",
-        },
-      },
-    )
-      .then((response) => response.json())
-      .then((data: unknown) => {
+    const loadPhotoUrl = async (): Promise<void> => {
+      try {
+        const response = await fetch(
+          `${GOOGLE_PLACES_API_BASE_URL}/places/${encodeURIComponent(googlePlaceId)}`,
+          {
+            headers: {
+              "X-Goog-Api-Key": apiKey,
+              "X-Goog-FieldMask": "photos",
+            },
+            signal: controller.signal,
+          },
+        );
+        if (!response.ok) {
+          throw new Error("Restaurant photo request failed.");
+        }
+
+        const data: unknown = await response.json();
         if (cancelled) {
           return;
         }
         const photoName = extractFirstPhotoName(data);
-        if (photoName !== null) {
-          setPhotoUrl(
-            `${GOOGLE_PLACES_API_BASE_URL}/${photoName}/media?maxWidthPx=${RECOMMENDATION_PHOTO_MAX_WIDTH_PX}&key=${apiKey}`,
-          );
+        if (photoName === null) {
+          return;
         }
-      })
-      .catch((error: unknown) => {
-        console.error("Failed to fetch restaurant photo:", error);
-      });
+        const nextPhotoUrl = `${GOOGLE_PLACES_API_BASE_URL}/${photoName}/media?maxWidthPx=${RECOMMENDATION_PHOTO_MAX_WIDTH_PX}&key=${apiKey}`;
+        restaurantPhotoUrlCache.set(googlePlaceId, nextPhotoUrl);
+        setPhotoUrl(nextPhotoUrl);
+      } catch (error: unknown) {
+        if (cancelled || isAbortError(error)) {
+          return;
+        }
+        console.error("Failed to fetch restaurant photo.");
+      }
+    };
+
+    void loadPhotoUrl();
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [apiKey, googlePlaceId]);
 

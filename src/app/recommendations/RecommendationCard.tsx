@@ -5,6 +5,8 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
+
 import type { FeaturedRecommendation } from "@/hooks/useRecommendations";
 import { useRestaurantPhotoUrl } from "@/hooks/useRestaurantPhotoUrl";
 
@@ -24,16 +26,24 @@ export function RecommendationCard({
 }: RecommendationCardProps) {
   const { category, restaurant } = item;
   const photoUrl = useRestaurantPhotoUrl(restaurant.googlePlaceId);
+  const [hasImageError, setHasImageError] = useState(false);
+
+  useEffect(() => {
+    if (photoUrl !== null) {
+      setHasImageError(false);
+    }
+  }, [photoUrl]);
 
   return (
     <article className="group relative h-full min-h-80 w-full overflow-hidden rounded-[2rem] border border-line/80 bg-surface text-left shadow-recommendation transition duration-300 hover:-translate-y-0.5 hover:shadow-recommendation-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.99] sm:min-h-96">
-      {photoUrl !== null ? (
+      {photoUrl !== null && !hasImageError ? (
         // biome-ignore lint/performance/noImgElement: 外部の飲食店写真URLを表示するため next/image のドメイン許可設定を避ける
         <img
           className="absolute inset-0 size-full object-cover transition group-hover:scale-[1.02]"
           src={photoUrl}
           alt={`${restaurant.name}の写真`}
           draggable={false}
+          onError={() => setHasImageError(true)}
         />
       ) : (
         <div

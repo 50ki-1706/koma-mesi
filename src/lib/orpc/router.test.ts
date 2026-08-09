@@ -12,9 +12,19 @@ import { db } from "@/db";
 import { migrateWithEmptyStatementsFiltered } from "@/db/migrate";
 import * as schema from "@/db/schema";
 import { RecommendationGenerationError } from "@/shared/recommendations/generate";
+import { GooglePlacesError } from "@/shared/recommendations/googlePlaces";
 import { createDailyRecommendationMock } from "@/shared/recommendations/mock";
-import type { ORPCContext } from "./context";
+import type { AddressGeocoder, ORPCContext } from "./context";
+import { createORPCContext } from "./context";
 import { router } from "./router";
+
+vi.mock("@/lib/auth", () => ({
+  auth: { api: { getSession: vi.fn(async () => null) } },
+}));
+
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => new Headers()),
+}));
 
 type TestDatabase = ReturnType<typeof drizzle<typeof schema>>;
 type TestSession = NonNullable<ORPCContext["session"]>;
@@ -27,7 +37,7 @@ const getRecommendations = async () => {
   throw new Error("このテストでは推薦取得を呼び出しません。");
 };
 
-const geocodeAddress = async () => null;
+const geocodeAddress: AddressGeocoder = async () => null;
 
 const authenticatedSession = {
   session: {
@@ -50,6 +60,53 @@ const authenticatedSession = {
     updatedAt: new Date("2026-08-09T00:00:00Z"),
   },
 } as ORPCContext["session"];
+
+describe("createORPCContextのジオコーディング", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("通常のジオコーディング失敗はnullを返し、安全な文字列だけをログに出す", async () => {
+    vi.stubEnv("GOOGLE_MAPS_API_KEY", "server-api-key");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof fetch>()
+        .mockRejectedValue(
+          new Error(
+            "request failed for https://maps.googleapis.com/?key=secret",
+          ),
+        ),
+    );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const context = await createORPCContext();
+
+    await expect(
+      context.geocodeAddress("東京都千代田区1-1"),
+    ).resolves.toBeNull();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Failed to geocode campus address.",
+    );
+    expect(
+      consoleError.mock.calls[0]?.every(
+        (argument) => typeof argument === "string",
+      ),
+    ).toBe(true);
+  });
+
+  it("Google Maps APIキー未設定エラーはnullへ変換しない", async () => {
+    vi.stubEnv("GOOGLE_MAPS_API_KEY", "");
+    const context = await createORPCContext();
+
+    await expect(
+      context.geocodeAddress("東京都千代田区1-1"),
+    ).rejects.toBeInstanceOf(GooglePlacesError);
+  });
+});
 
 /**
  * 全マイグレーションを適用したインメモリSQLiteのテスト用DBを作成する。
@@ -435,6 +492,32 @@ describe("router.initialSetup", () => {
     });
   });
 
+  it("有効なゼロ座標をcampusLocationとして返す", async () => {
+    const userId = "status-complete-with-zero-location-user";
+    await insertTestUser(testDb, userId);
+    await testDb.insert(schema.userPreferences).values({
+      userId,
+      campusAddress: "〒100-0001 東京都千代田区1-1",
+      campusLatitude: 0,
+      campusLongitude: 0,
+    });
+
+    const result = await call(router.initialSetup.status, undefined, {
+      context: {
+        db: testDb,
+        session: createTestSession(userId),
+        generateRecommendations,
+        getRecommendations,
+        geocodeAddress,
+      },
+    });
+
+    expect(result).toEqual({
+      isCompleted: true,
+      campusLocation: { latitude: 0, longitude: 0 },
+    });
+  });
+
   it("未認証の場合はエラーを返す", async () => {
     await expect(
       call(
@@ -541,6 +624,83 @@ describe("router.initialSetup", () => {
       campusLatitude: null,
       campusLongitude: null,
     });
+  });
+
+  it("ジオコーダーの一般エラー時も設定を座標nullで保存する", async () => {
+    const userId = "complete-geocode-error-user";
+    await insertTestUser(testDb, userId);
+    const geocode: AddressGeocoder = async () => {
+      throw new Error("temporary geocoding failure");
+    };
+
+    const result = await call(
+      router.initialSetup.complete,
+      {
+        postalCode: "100-0001",
+        prefecture: "東京都",
+        streetAddress: "千代田区1-1",
+        lunchStartTime: "12:00",
+        lunchEndTime: "13:00",
+        lunchDays: ["monday"],
+      },
+      {
+        context: {
+          db: testDb,
+          session: createTestSession(userId),
+          generateRecommendations,
+          getRecommendations,
+          geocodeAddress: geocode,
+        },
+      },
+    );
+    const preference = await testDb.query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, userId),
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(preference).toMatchObject({
+      campusLatitude: null,
+      campusLongitude: null,
+    });
+  });
+
+  it("GooglePlacesErrorの設定エラーは握りつぶさない", async () => {
+    const userId = "complete-google-places-error-user";
+    await insertTestUser(testDb, userId);
+    const configurationError = new GooglePlacesError(
+      "GOOGLE_MAPS_API_KEYが設定されていません。",
+    );
+    const geocode: AddressGeocoder = async () => {
+      throw configurationError;
+    };
+
+    await expect(
+      call(
+        router.initialSetup.complete,
+        {
+          postalCode: "100-0001",
+          prefecture: "東京都",
+          streetAddress: "千代田区1-1",
+          lunchStartTime: "12:00",
+          lunchEndTime: "13:00",
+          lunchDays: ["monday"],
+        },
+        {
+          context: {
+            db: testDb,
+            session: createTestSession(userId),
+            generateRecommendations,
+            getRecommendations,
+            geocodeAddress: geocode,
+          },
+        },
+      ),
+    ).rejects.toBe(configurationError);
+
+    const preference = await testDb.query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, userId),
+    });
+    expect(preference).toBeUndefined();
   });
 
   it("既存レコードを更新できる", async () => {

@@ -58,10 +58,11 @@ export async function createORPCContext() {
     getDailyRecommendations({ repository }, command);
 
   const geocodeCampusAddress: AddressGeocoder = async (address) => {
+    const apiKey = requireGoogleMapsApiKey();
     try {
-      return await geocodeAddress(address, requireGoogleMapsApiKey());
-    } catch (error) {
-      console.error("Failed to geocode campus address:", error);
+      return await geocodeAddress(address, apiKey);
+    } catch {
+      console.error("Failed to geocode campus address.");
       return null;
     }
   };
