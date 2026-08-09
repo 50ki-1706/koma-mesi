@@ -7,7 +7,7 @@
 
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LOGIN_DESTINATION } from "@/constants/auth";
 import {
   DEFAULT_LUNCH_DAYS,
@@ -21,9 +21,12 @@ import { logout } from "@/shared/auth/logout";
 /** 初期設定画面の表示状態と操作をまとめたコントローラー。 */
 export interface InitialSetupFormController {
   isInitialStatePending: boolean;
+  isInitialSetupStatusError: boolean;
   isAuthenticated: boolean;
   userName: string | null;
   selectedDays: WeekdayValue[];
+  errorMessage: string | null;
+  isSubmitting: boolean;
   handleGoogleSignIn: () => void;
   handleSignOut: () => void;
   toggleDay: (day: WeekdayValue) => void;
@@ -44,8 +47,15 @@ export function useInitialSetup(): InitialSetupFormController {
   );
   const [selectedDays, setSelectedDays] =
     useState<WeekdayValue[]>(DEFAULT_LUNCH_DAYS);
-  const [isSetupCompleted, setIsSetupCompleted] = useState(false);
+  const [isSetupCompleted, setIsSetupCompleted] = useState<boolean | null>(
+    null,
+  );
   const [isCheckingSetup, setIsCheckingSetup] = useState(false);
+  const [isInitialSetupStatusError, setIsInitialSetupStatusError] =
+    useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   // Check setup status from DB after session is loaded
   useEffect(() => {
@@ -56,11 +66,16 @@ export function useInitialSetup(): InitialSetupFormController {
     if (userId === null) {
       setCheckedUserId(null);
       setIsSetupCompleted(false);
+      setIsInitialSetupStatusError(false);
       setIsCheckingSetup(false);
+      setErrorMessage(null);
       return;
     }
 
     let cancelled = false;
+    setIsSetupCompleted(null);
+    setIsInitialSetupStatusError(false);
+    setErrorMessage(null);
     setIsCheckingSetup(true);
 
     orpc.initialSetup
@@ -68,16 +83,22 @@ export function useInitialSetup(): InitialSetupFormController {
       .then(({ isCompleted }) => {
         if (!cancelled) {
           setIsSetupCompleted(isCompleted);
+          setIsInitialSetupStatusError(false);
           setCheckedUserId(userId);
           setIsCheckingSetup(false);
+          setErrorMessage(null);
         }
       })
       .catch((error) => {
         console.error("Failed to check initial setup status:", error);
         if (!cancelled) {
-          setIsSetupCompleted(false);
+          setIsSetupCompleted(null);
+          setIsInitialSetupStatusError(true);
           setCheckedUserId(userId);
           setIsCheckingSetup(false);
+          setErrorMessage(
+            "初期設定の状態を確認できませんでした。ブラウザーを再読み込みしてください。",
+          );
         }
       });
 
@@ -143,16 +164,26 @@ export function useInitialSetup(): InitialSetupFormController {
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
-    const postalCode = (formData.get("postalCode") as string | null) ?? "";
-    const prefecture = (formData.get("prefecture") as string | null) ?? "";
-    const streetAddress =
-      (formData.get("streetAddress") as string | null) ?? "";
-    const lunchStartTime =
-      (formData.get("lunchStartTime") as string | null) ?? "";
-    const lunchEndTime = (formData.get("lunchEndTime") as string | null) ?? "";
+    if (
+      isInitialSetupStatusError ||
+      isSetupCompleted === null ||
+      isSubmittingRef.current
+    ) {
+      return;
+    }
+
+    setErrorMessage(null);
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
 
     try {
+      const formData = new FormData(event.currentTarget);
+      const postalCode = getStringField(formData, "postalCode");
+      const prefecture = getStringField(formData, "prefecture");
+      const streetAddress = getStringField(formData, "streetAddress");
+      const lunchStartTime = getStringField(formData, "lunchStartTime");
+      const lunchEndTime = getStringField(formData, "lunchEndTime");
+
       await orpc.initialSetup.complete({
         postalCode,
         prefecture,
@@ -162,21 +193,44 @@ export function useInitialSetup(): InitialSetupFormController {
         lunchDays: selectedDays,
       });
 
+      setErrorMessage(null);
       router.push(INITIAL_SETUP_DESTINATION);
     } catch (error) {
       console.error("Failed to complete initial setup:", error);
+      setErrorMessage(
+        "初期設定を保存できませんでした。もう一度お試しください。",
+      );
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
   return {
     isInitialStatePending:
       isSessionPending || isCheckingSetup || checkedUserId !== userId,
+    isInitialSetupStatusError,
     isAuthenticated: Boolean(session),
     userName: session?.user.name ?? null,
     selectedDays,
+    errorMessage,
+    isSubmitting,
     handleGoogleSignIn,
     handleSignOut,
     toggleDay,
     handleSubmit,
   };
+}
+
+/**
+ * FormDataから文字列の入力値を取得する。
+ *
+ * @param formData - 入力フォームのFormData。
+ * @param key - 取得するフィールド名。
+ * @returns 文字列の入力値、または文字列でない場合は空文字列。
+ */
+function getStringField(formData: FormData, key: string): string {
+  const value: unknown = formData.get(key);
+
+  return typeof value === "string" ? value : "";
 }
