@@ -12,6 +12,7 @@ import {
   DEFAULT_LUNCH_DAYS,
   INITIAL_SETUP_DESTINATION,
   INITIAL_SETUP_STORAGE_KEY_PREFIX,
+  LUNCH_TIME_RANGE_ERROR_MESSAGE,
   type WeekdayValue,
 } from "@/constants/initialSetup";
 import { signIn, useSession } from "@/lib/auth-client";
@@ -23,6 +24,7 @@ export interface InitialSetupFormController {
   isAuthenticated: boolean;
   userName: string | null;
   selectedDays: WeekdayValue[];
+  lunchTimeError: string | null;
   handleGoogleSignIn: () => void;
   handleSignOut: () => void;
   toggleDay: (day: WeekdayValue) => void;
@@ -43,6 +45,7 @@ export function useInitialSetup(): InitialSetupFormController {
   );
   const [selectedDays, setSelectedDays] =
     useState<WeekdayValue[]>(DEFAULT_LUNCH_DAYS);
+  const [lunchTimeError, setLunchTimeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isSessionPending) {
@@ -98,7 +101,7 @@ export function useInitialSetup(): InitialSetupFormController {
   };
 
   /**
-   * ブラウザーの入力検証後に初期設定後のページへ遷移する。
+   * ブラウザーの入力検証後、昼休みの時間帯を確認してから初期設定後のページへ遷移する。
    *
    * @param event - フォーム送信イベント。
    * @returns なし。
@@ -110,6 +113,16 @@ export function useInitialSetup(): InitialSetupFormController {
       return;
     }
 
+    const formData = new FormData(event.currentTarget);
+    const lunchStartTime = String(formData.get("lunchStartTime"));
+    const lunchEndTime = String(formData.get("lunchEndTime"));
+
+    if (lunchEndTime <= lunchStartTime) {
+      setLunchTimeError(LUNCH_TIME_RANGE_ERROR_MESSAGE);
+      return;
+    }
+
+    setLunchTimeError(null);
     window.localStorage.setItem(createSetupStorageKey(userId), "true");
     router.push(INITIAL_SETUP_DESTINATION);
   };
@@ -119,6 +132,7 @@ export function useInitialSetup(): InitialSetupFormController {
     isAuthenticated: Boolean(session),
     userName: session?.user.name ?? null,
     selectedDays,
+    lunchTimeError,
     handleGoogleSignIn,
     handleSignOut,
     toggleDay,
