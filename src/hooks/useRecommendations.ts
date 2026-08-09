@@ -147,7 +147,11 @@ export function useRecommendations(): RecommendationsController {
     async ({ reportInitialError = true } = {}): Promise<void> => {
       try {
         const result = await orpc.recommendation.getDaily({});
-        setItems(toFeaturedRecommendations(result));
+        const newItems = toFeaturedRecommendations(result);
+        setItems(newItems);
+        setCurrentIndex((index) =>
+          newItems.length === 0 ? 0 : Math.min(index, newItems.length - 1),
+        );
         if (reportInitialError) {
           setErrorMessage(null);
         }
