@@ -29,15 +29,15 @@ export function resolveAuthCredentials(
       .map((host) => host.trim())
       .filter((host) => host.length > 0) ?? [];
 
-  if (!googleClientId || !googleClientSecret) {
+  if (!googleClientId?.trim() || !googleClientSecret?.trim()) {
     throw new Error("Google OAuth credentials are required");
   }
 
-  if (!oauthProxySecret) {
+  if (!oauthProxySecret?.trim()) {
     throw new Error("OAUTH_PROXY_SECRET is required");
   }
 
-  if (!productionUrl) {
+  if (!productionUrl?.trim()) {
     throw new Error("AUTH_PRODUCTION_URL is required");
   }
 
